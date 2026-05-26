@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedStudy - Platform Belajar Kedokteran</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f2f5;color:#333;display:flex;height:100vh;overflow:hidden}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:#f1f1f1}
+::-webkit-scrollbar-thumb{background:#888;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#555}
+
+.sidebar{width:260px;background:#1e293b;color:#fff;height:100vh;overflow-y:auto;position:fixed;left:0;top:0;display:flex;flex-direction:column;transition:all .3s;z-index:100}
+.sidebar.collapsed{width:0;overflow:hidden}
+.sidebar-header{padding:20px;border-bottom:1px solid #334155;display:flex;align-items:center;gap:12px}
+.sidebar-header .logo-icon{font-size:28px}
+.sidebar-header .brand{display:flex;flex-direction:column}
+.sidebar-header .brand h1{font-size:18px;font-weight:700}
+.sidebar-header .brand span{font-size:12px;color:#94a3b8}
+
+.sidebar-section{padding:15px 20px 10px;font-size:11px;text-transform:uppercase;color:#64748b;letter-spacing:1px;font-weight:600}
+.sidebar-item{padding:12px 20px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .2s;border-left:3px solid transparent}
+.sidebar-item:hover{background:#334155;border-left-color:#60a5fa}
+.sidebar-item.active{background:#2563eb;border-left-color:#60a5fa}
+.sidebar-item .icon{font-size:18px;width:24px;text-align:center}
+.sidebar-item span{font-size:14px}
+
+.sidebar-toggle{position:fixed;left:260px;top:10px;background:#1e293b;color:#fff;border:none;padding:8px 10px;cursor:pointer;border-radius:4px;z-index:101;transition:left .3s;font-size:16px}
+.sidebar-toggle.collapsed{left:10px}
+
+.main-content{margin-left:260px;flex:1;padding:25px;overflow-y:auto;height:100vh;transition:margin-left .3s}
+.main-content.expanded{margin-left:0}
+
+.section{display:none;animation:fadeIn .3s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.card{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.card-title{font-size:18px;font-weight:700;margin-bottom:8px;color:#1e293b}
+.card-subtitle{font-size:13px;color:#64748b;margin-bottom:15px}
+
+.dashboard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:25px}
+.stat-card{background:#fff;border-radius:12px;padding:20px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1);border-top:4px solid #2563eb}
+.stat-card .stat-value{font-size:32px;font-weight:700;color:#2563eb}
+.stat-card .stat-label{font-size:13px;color:#64748b;margin-top:5px}
+.stat-card:nth-child(2){border-top-color:#10b981}
+.stat-card:nth-child(3){border-top-color:#f59e0b}
+.stat-card:nth-child(4){border-top-color:#8b5cf6}
+.stat-card:nth-child(5){border-top-color:#06b6d4}
+.stat-card:nth-child(6){border-top-color:#ef4444}
+
+.badge-grid{display:flex;flex-wrap:wrap;gap:10px}
+.badge{display:flex;align-items:center;gap:8px;background:#f1f5f9;padding:8px 14px;border-radius:20px;font-size:13px;color:#475569}
+.badge .badge-icon{font-size:16px}
+.badge.locked{opacity:.5}
+
+.daily-tasks .task-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #e2e8f0}
+.daily-tasks .task-item:last-child{border-bottom:none}
+.task-checkbox{width:20px;height:20px;border:2px solid #cbd5e1;border-radius:50%;cursor:pointer;transition:all .2s;flex-shrink:0}
+.task-checkbox.checked{background:#10b981;border-color:#10b981}
+
+.materi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.materi-card{background:#fff;border-radius:12px;padding:20px;cursor:pointer;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.1);border-left:4px solid #2563eb}
+.materi-card:hover{transform:translateY(-3px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.materi-card .materi-icon{font-size:36px;margin-bottom:10px}
+.materi-card .materi-title{font-size:16px;font-weight:700;color:#1e293b;margin-bottom:5px}
+.materi-card .materi-desc{font-size:13px;color:#64748b;line-height:1.5}
+
+.materi-detail{display:none;background:#fff;border-radius:12px;padding:25px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.materi-detail.active{display:block}
+.back-btn{background:#e2e8f0;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;margin-bottom:15px;font-size:13px;display:inline-flex;align-items:center;gap:6px}
+.back-btn:hover{background:#cbd5e1}
+
+.content-text{line-height:1.8;color:#374151}
+.content-text h2{font-size:22px;color:#1e293b;margin:25px 0 15px;padding-bottom:8px;border-bottom:2px solid #e2e8f0}
+.content-text h3{font-size:18px;color:#2563eb;margin:20px 0 10px}
+.content-text h4{font-size:16px;color:#334155;margin:15px 0 8px}
+.content-text p{margin-bottom:12px;text-align:justify}
+.content-text ul,.content-text ol{margin:10px 0 15px 25px}
+.content-text li{margin-bottom:6px}
+.content-text table{width:100%;border-collapse:collapse;margin:15px 0;font-size:14px}
+.content-text th,.content-text td{border:1px solid #e2e8f0;padding:10px;text-align:left}
+.content-text th{background:#f8fafc;font-weight:600}
+.content-text tr:nth-child(even){background:#f8fafc}
+
+.quiz-container{max-width:700px;margin:0 auto}
+.quiz-question{background:#fff;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.quiz-question h3{font-size:16px;margin-bottom:15px;color:#1e293b}
+.quiz-options{display:flex;flex-direction:column;gap:10px}
+.quiz-option{padding:12px 16px;border:2px solid #e2e8f0;border-radius:8px;cursor:pointer;transition:all .2s;font-size:14px}
+.quiz-option:hover{border-color:#60a5fa;background:#f0f9ff}
+.quiz-option.correct{border-color:#10b981;background:#ecfdf5;color:#065f46}
+.quiz-option.wrong{border-color:#ef4444;background:#fef2f2;color:#991b1b}
+.quiz-option.disabled{cursor:default;pointer-events:none}
+.quiz-result{text-align:center;padding:20px;font-size:18px;font-weight:700}
+
+.flashcard-container{max-width:600px;margin:0 auto;text-align:center}
+.flashcard{width:100%;height:280px;background:#fff;border-radius:16px;box-shadow:0 4px 15px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .4s;margin-bottom:20px;position:relative;overflow:hidden}
+.flashcard:hover{transform:translateY(-3px)}
+.flashcard .fc-content{padding:30px;font-size:18px;line-height:1.6}
+.flashcard .fc-front,.flashcard .fc-back{position:absolute;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:30px;transition:opacity .3s}
+.flashcard .fc-back{opacity:0;background:#2563eb;color:#fff;border-radius:16px}
+.flashcard.flipped .fc-front{opacity:0}
+.flashcard.flipped .fc-back{opacity:1}
+.fc-controls{display:flex;justify-content:center;gap:15px;margin-top:15px}
+.fc-btn{background:#2563eb;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px}
+.fc-btn:hover{background:#1d4ed8}
+.fc-counter{color:#64748b;font-size:14px;margin-bottom:10px}
+
+.search-box{width:100%;padding:12px 16px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;margin-bottom:20px;outline:none}
+.search-box:focus{border-color:#2563eb}
+
+.ref-table{width:100%;border-collapse:collapse;font-size:14px}
+.ref-table th,.ref-table td{border:1px solid #e2e8f0;padding:10px;text-align:left}
+.ref-table th{background:#f8fafc;font-weight:600}
+.ref-table tr:nth-child(even){background:#f8fafc}
+
+.timer-display{font-size:64px;font-weight:700;text-align:center;color:#2563eb;margin:20px 0;font-family:monospace}
+.timer-controls{display:flex;justify-content:center;gap:15px;margin-bottom:20px}
+.timer-btn{padding:10px 24px;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;color:#fff}
+.timer-btn.start{background:#10b981}
+.timer-btn.pause{background:#f59e0b}
+.timer-btn.reset{background:#ef4444}
+
+@media(max-width:768px){
+  .sidebar{width:0}
+  .main-content{margin-left:0;padding:15px}
+  .sidebar-toggle{left:10px}
+  .materi-grid{grid-template-columns:1fr}
+  .dashboard-grid{grid-template-columns:repeat(2,1fr)}
+  .timer-display{font-size:48px}
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-icon">🩺</div>
+    <div class="brand">
+      <h1>MedStudy</h1>
+      <span>Platform Belajar Kedokteran</span>
+    </div>
+  </div>
+  <div class="sidebar-section">Menu Utama</div>
+  <div class="sidebar-item active" onclick="showSection('dashboard',this)">
+    <span class="icon">📊</span><span>Dashboard</span>
+  </div>
+  <div class="sidebar-item" onclick="showSection('materi',this)">
+    <span class="icon">📚</span><span>Materi Lengkap</span>
+  </div>
+  <div class="sidebar-item" onclick="showSection('kuis',this)">
+    <span class="icon">✅</span><span>Kuis</span>
+  </div>
+  <div class="sidebar-item" onclick="showSection('simulasi',this)">
+    <span class="icon">🧪</span><span>Simulasi Soal</span>
+  </div>
+  <div class="sidebar-item" onclick="showSection('flashcard',this)">
+    <span class="icon">💬</span><span>Flashcard</span>
+  </div>
+  <div class="sidebar-section">Alat Belajar</div>
+  <div class="sidebar-item" onclick="showSection('pomodoro',this)">
+    <span class="icon">⏱</span><span>Pomodoro Timer</span>
+  </div>
+  <div class="sidebar-item" onclick="showSection('catatan',this)">
+    <span class="icon">📝</span><span>Catatan</span>
+  </div>
+  <div class="sidebar-item" onclick="showSection('pencarian',this)">
+    <span class="icon">🔍</span><span>Pencarian Cepat</span>
+  </div>
+  <div class="sidebar-section">Referensi</div>
+  <div class="sidebar-item" onclick="showSection('glosarium',this)">
+    <span class="icon">📖</span><span>Glosarium Medis</span>
+  </div>
+  <div class="sidebar-item" onclick="showSection('tabel',this)">
+    <span class="icon">📋</span><span>Tabel Referensi</span>
+  </div>
+</div>
+
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
+
+<div class="main-content" id="mainContent">
+
+<div class="section active" id="dashboard">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">📊 Dashboard Perkembangan</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Pantau progress belajar harian Anda</p>
+
+  <div class="dashboard-grid">
+    <div class="stat-card"><div class="stat-value" id="statMateri">7</div><div class="stat-label">Materi Tersedia</div></div>
+    <div class="stat-card"><div class="stat-value" id="statKuis">0</div><div class="stat-label">Kuis Dikerjakan</div></div>
+    <div class="stat-card"><div class="stat-value" id="statSimulasi">0</div><div class="stat-label">Simulasi Soal</div></div>
+    <div class="stat-card"><div class="stat-value" id="statFlashcard">0</div><div class="stat-label">Flashcard Dipelajari</div></div>
+    <div class="stat-card"><div class="stat-value" id="statPomodoro">0</div><div class="stat-label">Sesi Pomodoro</div></div>
+    <div class="stat-card"><div class="stat-value" id="statStreak">1</div><div class="stat-label">Streak Hari</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    <div class="card">
+      <div class="card-title">🏆 Lencana & Pencapaian</div>
+      <div class="card-subtitle">Kumpulkan lencana dengan belajar</div>
+      <div class="badge-grid">
+        <div class="badge"><span class="badge-icon">🌟</span> Pemula Medis</div>
+        <div class="badge locked"><span class="badge-icon">📚</span> Pembaca Rajin</div>
+        <div class="badge locked"><span class="badge-icon">🧠</span> Ahli Kuis</div>
+        <div class="badge locked"><span class="badge-icon">⏱</span> Fokus Master</div>
+        <div class="badge locked"><span class="badge-icon">💬</span> Flashcard Pro</div>
+        <div class="badge locked"><span class="badge-icon">🔥</span> Streak 7 Hari</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">📅 Tujuan Harian</div>
+      <div class="card-subtitle">Selesaikan untuk mempertahankan streak</div>
+      <div class="daily-tasks">
+        <div class="task-item"><div class="task-checkbox" onclick="this.classList.toggle('checked')"></div><span>Baca 1 materi pembelajaran</span></div>
+        <div class="task-item"><div class="task-checkbox" onclick="this.classList.toggle('checked')"></div><span>Kerjakan minimal 5 kuis</span></div>
+        <div class="task-item"><div class="task-checkbox" onclick="this.classList.toggle('checked')"></div><span>Pelajari 10 flashcard</span></div>
+        <div class="task-item"><div class="task-checkbox" onclick="this.classList.toggle('checked')"></div><span>Selesaikan 1 sesi pomodoro</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <div class="card-title">📈 Ringkasan Aktivitas Mingguan</div>
+    <div class="card-subtitle">Visualisasi aktivitas belajar 7 hari terakhir</div>
+    <div style="display:flex;justify-content:space-around;align-items:flex-end;height:120px;padding:20px;background:#f8fafc;border-radius:8px">
+      <div style="text-align:center"><div style="width:40px;height:40px;background:#e2e8f0;border-radius:4px;margin:0 auto"></div><span style="font-size:12px;color:#64748b">Sen</span></div>
+      <div style="text-align:center"><div style="width:40px;height:60px;background:#2563eb;border-radius:4px;margin:0 auto"></div><span style="font-size:12px;color:#64748b">Sel</span></div>
+      <div style="text-align:center"><div style="width:40px;height:30px;background:#2563eb;border-radius:4px;margin:0 auto"></div><span style="font-size:12px;color:#64748b">Rab</span></div>
+      <div style="text-align:center"><div style="width:40px;height:80px;background:#10b981;border-radius:4px;margin:0 auto"></div><span style="font-size:12px;color:#64748b">Kam</span></div>
+      <div style="text-align:center"><div style="width:40px;height:50px;background:#2563eb;border-radius:4px;margin:0 auto"></div><span style="font-size:12px;color:#64748b">Jum</span></div>
+      <div style="text-align:center"><div style="width:40px;height:70px;background:#2563eb;border-radius:4px;margin:0 auto"></div><span style="font-size:12px;color:#64748b">Sab</span></div>
+      <div style="text-align:center"><div style="width:40px;height:20px;background:#e2e8f0;border-radius:4px;margin:0 auto"></div><span style="font-size:12px;color:#64748b">Min</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="section" id="materi">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">📚 Materi Lengkap</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Pilih materi pembelajaran kedokteran di bawah ini</p>
+  <div class="materi-grid" id="materiGrid">
+    <div class="materi-card" onclick="showMateriDetail(1)" style="border-left-color:#2563eb">
+      <div class="materi-icon">🛡️</div>
+      <div class="materi-title">Respon Imun Innate (Non Spesifik)</div>
+      <div class="materi-desc">Komponen respon imun non spesifik, Pattern Recognition Receptors, fagositosis, sistem komplemen, sel NK, dan pertahanan tubuh terdepan.</div>
+    </div>
+    <div class="materi-card" onclick="showMateriDetail(2)" style="border-left-color:#ef4444">
+      <div class="materi-icon">🦠</div>
+      <div class="materi-title">Respon Imun terhadap Bakteri, Virus & Parasit</div>
+      <div class="materi-desc">Mekanisme infeksi bakteri ekstraseluler & intraseluler, respon antivirus, mekanisme evasi, dan imunitas terhadap parasit.</div>
+    </div>
+    <div class="materi-card" onclick="showMateriDetail(3)" style="border-left-color:#10b981">
+      <div class="materi-icon">🔬</div>
+      <div class="materi-title">Konsep Dasar Imunologi: Sel & Jaringan Sistem Imun</div>
+      <div class="materi-desc">Definisi imunologi, sel-sel sistem imun non spesifik dan spesifik, sistem komplemen, interferon, dan pertahanan seluler.</div>
+    </div>
+    <div class="materi-card" onclick="showMateriDetail(4)" style="border-left-color:#f59e0b">
+      <div class="materi-icon">💊</div>
+      <div class="materi-title">Teknik Penulisan Resep Kedokteran</div>
+      <div class="materi-desc">Ketentuan penulisan resep, formula magistralis/officinalis/spesialistic, bahasa Latin, singkatan, dan contoh resep lengkap.</div>
+    </div>
+    <div class="materi-card" onclick="showMateriDetail(5)" style="border-left-color:#8b5cf6">
+      <div class="materi-icon">⚗️</div>
+      <div class="materi-title">Pengantar Farmakologi</div>
+      <div class="materi-desc">Farmakokinetik, farmakodinamik, rute pemberian obat, reseptor obat, agonis & antagonis, golongan obat, dan uji klinik.</div>
+    </div>
+    <div class="materi-card" onclick="showMateriDetail(6)" style="border-left-color:#06b6d4">
+      <div class="materi-icon">🩹</div>
+      <div class="materi-title">Wound Healing (Penyembuhan Luka)</div>
+      <div class="materi-desc">Fase hemostasis, inflamasi, proliferasi, remodeling, growth factors, komplikasi luka, dan perbedaan keloid vs hypertrophic scar.</div>
+    </div>
+    <div class="materi-card" onclick="showMateriDetail(7)" style="border-left-color:#ec4899">
+      <div class="materi-icon">📏</div>
+      <div class="materi-title">Penilaian Status Gizi (Metode Antropometri)</div>
+      <div class="materi-desc">Pengukuran berat badan, tinggi badan, LILA, lingkar perut, lingkar kepala, rasio pinggang-panggul, dan tebal lemak bawah kulit.</div>
+    </div>
+  </div>
+
+  <div class="materi-detail" id="materi-1">
+    <button class="back-btn" onclick="backToMateri()">← Kembali ke Daftar Materi</button>
+    <div class="content-text">
+      <h2>🛡️ Respon Imun Innate (Non Spesifik)</h2>
+      <p><em>Oleh: Lipinwati, Mikrobiologi dan Parasitologi, Prodi Kedokteran FKIK UNJA</em></p>
+      <h3>📋 Tujuan Pembelajaran</h3>
+      <ol>
+        <li>Mahasiswa dapat menyebutkan komponen respon imun non spesifik</li>
+        <li>Mahasiswa dapat menjelaskan bagaimana respon imun non spesifik distimulasi</li>
+        <li>Mahasiswa dapat menjelaskan Pattern Recognition Receptor (PRR)</li>
+        <li>Mahasiswa dapat menjelaskan bagaimana respon imun non spesifik berperan dalam stimulasi respon imun spesifik</li>
+      </ol>
+      <h3>🦠 Patogen Penyebab Infeksi</h3>
+      <ul>
+        <li>Virus</li>
+        <li>Bakteri</li>
+        <li>Jamur</li>
+        <li>Protozoa</li>
+        <li>Cacing</li>
+      </ul>
+      <p><strong>Jalur Penularan Penyakit:</strong> Inhalasi atau ingesti, air atau makanan terkontaminasi, transmisi seksual/darah terinfeksi, kontak, mikro abrasi, luka tusuk, dan vektor.</p>
+      <p><strong>Peran Sistem Imun:</strong> Perlindungan terhadap mikroba, perlindungan terhadap pertumbuhan sel tumor, dan homeostasis (merusak sel abnormal atau sel mati).</p>
+      <h3>🛡️ Karakteristik Respon Imun Innate</h3>
+      <ul>
+        <li>Imun nonspesifik dan sudah ada sejak lahir</li>
+        <li>Karakteristik utama: respon cepat, tidak ada memori, mengenali <strong>Pathogen Associated Molecular Patterns (PAMPs)</strong></li>
+      </ul>
+      <h3>🔬 Komponen Utama</h3>
+      <h4>A. Hambatan Fisik dan Kimia</h4>
+      <ul>
+        <li><strong>Anatomi:</strong> Epitel kulit/keratin, silia di saluran nafas</li>
+        <li><strong>Fisiologi:</strong> Flus urin, peristaltik usus, air mata</li>
+        <li><strong>Kimiawi:</strong> pH lambung, pH vagina, lisozim, asam lemak, surfaktan paru</li>
+      </ul>
+      <h4>B. Komponen Seluler</h4>
+      <ul>
+        <li><strong>Fagosit:</strong> Neutrofil dan makrofag</li>
+        <li><strong>Sel granulosit:</strong> Eosinofil dan basofil</li>
+        <li><strong>Sel NK</strong> (Natural Killer)</li>
+        <li><strong>Sel dendritik</strong></li>
+      </ul>
+      <h4>C. Komponen Humoral</h4>
+      <ul>
+        <li>Sistem komplemen</li>
+        <li>Sitokin</li>
+        <li>Interferon</li>
+      </ul>
+      <h3>🧪 Pertahanan Biokimiawi</h3>
+      <ul>
+        <li><strong>pH asam keringat:</strong> Sekresi sebasea dan asam lemak yang dilepas kulit → asam → denaturasi protein membran bakteri</li>
+        <li><strong>Lisozim:</strong> Di keringat, ludah, air mata, ASI → perlindungan terhadap infeksi bakteri Gram positif → merusak peptidoglikan dinding sel</li>
+        <li><strong>Enzim laktooksidase:</strong> Di ASI dan saliva → merusak dinding sel mikroba → kebocoran sitoplasma</li>
+        <li><strong>Antibodi dan komplemen:</strong> Di saliva berfungsi sebagai opsonisasi bakteri</li>
+        <li><strong>Asam neuraminic:</strong> Di ASI bersifat antibacterial terhadap E. coli dan Staphylococcus</li>
+        <li><strong>Asam klorida di lambung:</strong> Menciptakan suasana asam yang dapat mencegah infeksi</li>
+        <li><strong>Enzim proteolitik, antibody dan empedu di usus halus:</strong> Menciptakan suasana yang dapat mencegah infeksi</li>
+        <li><strong>Laktoferin dan transferrin di serum:</strong> Mengikat Fe yang merupakan metabolit esensial untuk pertumbuhan mikroorganisme seperti Pseudomonas</li>
+      </ul>
+      <h3>🎯 Strategi Pengenalan Patogen</h3>
+      <h4>1. PAMPs (Pathogen-Associated Molecular Patterns)</h4>
+      <p>Molekul pathogen seperti LPS, Flagelin, dan dsRNA virus.</p>
+      <h4>2. DAMPs (Damage-Associated Molecular Patterns)</h4>
+      <p>Molekul yang dilepaskan sel inang saat mengalami kerusakan/stress.</p>
+      <h4>3. PRRs (Pattern Recognition Receptors)</h4>
+      <p>Reseptor pada sel imun yang mengenali PAMPs/DAMPs. Contoh: TLR (Toll-Like Receptors).</p>
+      <h3>4 Jenis PRR</h3>
+      <ol>
+        <li><strong>Toll-Like Receptors (TLR)</strong></li>
+        <li><strong>Nucleotide-binding oligomerization domain like receptors (NLR)</strong></li>
+        <li><strong>C-type lectin receptors (CLR)</strong></li>
+        <li><strong>RIG-I like receptors (RLR)</strong></li>
+      </ol>
+      <p><strong>PRR mengenali 2 jenis molekul:</strong></p>
+      <ol>
+        <li>Pathogen-Associated Molecular patterns (PAMPs) → bakteri pathogen</li>
+        <li>Damage-associated molecular patterns (DAMPs) → komponen sel host yang dilepas selama kerusakan sel/kematian sel</li>
+      </ol>
+      <h3>⚙️ Mekanisme Kerja Respon Imun Innate</h3>
+      <ol>
+        <li><strong>Pengenalan:</strong> Sel imun mengenali pathogen melalui PRR</li>
+        <li><strong>Fagositosis:</strong> Sel fagosit menelan dan menghancurkan mikroba</li>
+        <li><strong>Inflamasi:</strong> Pelepasan mediator kimia yang menyebabkan tanda radang</li>
+        <li><strong>Aktivasi sistem imun adaptif:</strong> Sel penyaji antigen (APC) mengaktivasi limfosit T dan B</li>
+      </ol>
+      <h3>🔄 Fagositosis</h3>
+      <p>Proses makrofag dan neutrofil menelan dan menghancurkan bakteri/benda asing. Sel fagositik: makrofag, dendritik, dan neutrofil.</p>
+      <h4>Tahapan Fagositosis:</h4>
+      <ol>
+        <li><strong>Kemotaksis dan Adhesi</strong></li>
+        <li><strong>Ingesti</strong></li>
+        <li><strong>Digesti:</strong> Fagolisosom membunuh mikroba</li>
+        <li><strong>Ekskresi</strong></li>
+      </ol>
+      <p>PRR berikatan dengan PAMPs, menginisiasi fagositosis, melepaskan oksidan toksik dan mengarahkan pathogen ke lisosom. Makrofag dengan protein pathogen dipresentasikan ke MHC ke sel T.</p>
+      <h3>🔥 Radang (Inflamasi)</h3>
+      <p>Terjadi bila terjadi kerusakan kulit dan epitel. Proses eliminasi pathogen dengan cara menghadirkan banyak sel fagosit dan sitokin ke tempat infeksi.</p>
+      <p><strong>5 Tanda Kardinal:</strong></p>
+      <ol>
+        <li><strong>Kalor</strong> (panas)</li>
+        <li><strong>Rubor</strong> (kemerahan)</li>
+        <li><strong>Dolor</strong> (nyeri)</li>
+        <li><strong>Tumor</strong> (bengkak)</li>
+        <li><strong>Functio laesa</strong> (gangguan fungsi)</li>
+      </ol>
+      <h3>⚠️ Penyakit yang Disebabkan oleh Peradangan</h3>
+      <ul>
+        <li><strong>Hipersensitivitas:</strong> Lupus, rheumatoid arthritis, asma</li>
+        <li><strong>Jantung:</strong> Endocarditis, miokarditis</li>
+        <li><strong>Saluran Nafas:</strong> Tonsilitis, laryngitis</li>
+        <li><strong>DM tipe 2</strong></li>
+        <li><strong>Kanker:</strong> Kanker hati, serviks</li>
+        <li><strong>Alzheimer</strong></li>
+      </ul>
+      <h3>💉 Pertahanan Humoral</h3>
+      <h4>1. Komplemen</h4>
+      <p>Meningkatkan fagositosis dengan cara: menghancurkan membran bakteri, melepas bahan kemotaktik, dan opsonisasi.</p>
+      <h4>2. Interferon</h4>
+      <p>Respon terhadap infeksi virus, menginduksi sel sekitar sehingga resisten terhadap virus, dan mengaktifkan sel NK.</p>
+      <h4>3. CRP (C-Reactive Protein)</h4>
+      <p>Protein fase akut yang kadarnya meningkat pada infeksi akut dan kerusakan jaringan. Berfungsi opsonisasi → CRP melapisi bakteri sehingga mudah dikenali dan dimakan oleh makrofag.</p>
+      <h3>🧬 Protein Komplemen</h3>
+      <p>Protein yang membantu proses opsonisasi antibiotik terhadap antigen. Terdapat di plasma darah, diproduksi oleh sel hati. Komplemen diaktifkan melalui 3 jalur:</p>
+      <ol>
+        <li><strong>Jalur Klasik:</strong> Dipicu oleh kompleks Ag-Ab, pengikatan protein C1q pada permukaan pathogen atau sel yang rusak</li>
+        <li><strong>Jalur Alternatif:</strong> Respon terhadap endotoksin → MAC protein (Membrane Attack Complex)</li>
+        <li><strong>Jalur Mannose-binding lectin (MBL):</strong> Respon terhadap mannose yang ada di permukaan bakteri (Listeria, Salmonella, Candida) → MASP (MBL Activated Serine Protease)</li>
+      </ol>
+      <h4>Fungsi Biologi Jalur Komplemen:</h4>
+      <ul>
+        <li>Lisis mikroba → forming pores on microbial surfaces</li>
+        <li>Stimulasi inflamasi → mediator inflamasi</li>
+        <li>Fagositosis → opsonisasi</li>
+        <li>Eliminasi kompleks imun dari sirkulasi</li>
+      </ul>
+      <h3>📡 Sitokin dan Interferon</h3>
+      <ul>
+        <li><strong>Interferon (IFN alfa dan IFN beta):</strong> Protein yang diproduksi sel yang terinfeksi virus untuk memperingatkan sel tetangga agar resisten terhadap infeksi virus</li>
+        <li><strong>Sitokin Pro-Inflamasi:</strong> Menginduksi demam dan meningkatkan produksi sel darah putih di sumsum tulang</li>
+      </ul>
+      <h3>🛡️ Pertahanan Selular</h3>
+      <h4>Sel Makrofag</h4>
+      <ul>
+        <li>Sel mononuklear → monosit dan makrofag</li>
+        <li>Siklus hidup lama</li>
+        <li>Granul: lisozim, komplemen, interferon, sitokin</li>
+        <li>Gerak lambat 7-8 jam</li>
+        <li>Diferensiasi sel monosit, terdapat di semua jaringan tubuh</li>
+        <li>Mampu menembus jaringan pembuluh darah sehingga bisa menuju ke pathogen</li>
+        <li>Mengeluarkan sitokin untuk merekrut sel-sel imun menuju ke tempat infeksi</li>
+        <li>Membantu terjadinya proses peradangan</li>
+      </ul>
+      <h4>PMN (Polymorphonuclear)</h4>
+      <ul>
+        <li>Siklus hidup pendek</li>
+        <li>Granul: enzim hidrolitik, laktoferin</li>
+        <li>Gerak cepat 2-4 jam</li>
+      </ul>
+      <h4>Sel NK</h4>
+      <ul>
+        <li>Sitotoksik → virus, keganasan</li>
+        <li>Aktivasi oleh interferon</li>
+      </ul>
+      <h4>Sel Mast</h4>
+      <ul>
+        <li>Terdapat di sebagian besar jaringan → berhubungan dengan lingkungan eksternal seperti kulit, saluran pernafasan</li>
+        <li>Membantu eliminasi mikroba dengan produksi protein inflamasi, vasodilatasi, rekruitmen sel-sel fagosit ke tempat infeksi</li>
+        <li>Berperan dalam kejadian alergi dan anafilaksis → pelepasan histamin</li>
+      </ul>
+      <h3>Neutrofil</h3>
+      <ul>
+        <li>Sel granulosit yang memiliki granula</li>
+        <li>Granula bersifat racun pada pathogen</li>
+        <li>Terdapat inti sejumlah 2-5</li>
+        <li>Sel yang pertama kali sampai di tempat infeksi</li>
+      </ul>
+      <h3>🌿 Sel Dendritik</h3>
+      <ul>
+        <li>Makropinositosis → dapat menelan molekul ukuran besar</li>
+        <li>2 macam sel: sel dendritik myeloid dan sel dendritik plasmasitoid</li>
+        <li>APC (Antigen Presenting Cell)</li>
+        <li>Sel dendritik sebagai jembatan antara respon imun nonspesifik dan spesifik</li>
+      </ul>
+      <h3>🔗 Jembatan ke Imun Adaptif</h3>
+      <p>Sel dendritik (APC): memakan pathogen di jaringan dan bermigrasi ke KGB untuk mempresentasikan fragmen antigen kepada sel T. Tanpa aktivasi sistem innate, sistem imun adaptif tidak bisa bekerja efektif.</p>
+      <h3>Eosinofil</h3>
+      <ul>
+        <li>Memiliki 2 inti</li>
+        <li>Mengeluarkan protein toksik terhadap mikrob: Major Basic Protein (MBP) dan Eosinofil Peroksidase (EPO)</li>
+        <li>Berperan dalam proses peradangan bersama dengan sel mast dan basofil</li>
+      </ul>
+      <h3>Basofil</h3>
+      <ul>
+        <li>Hanya di dalam darah</li>
+        <li>Granula mengandung histamin</li>
+        <li>Diaktivasi oleh: allergen dalam darah (PRR) dan aktivasi komplemen (C3a, C5a)</li>
+        <li>Menghasilkan histamin dan heparin</li>
+        <li>Histamin → vasodilatasi dan peningkatan permeabilitas kapiler</li>
+        <li>Peran: membantu respon imun di darah dan mendukung fungsi sel mast</li>
+      </ul>
+      <h3>Sel Natural Killer (NK)</h3>
+      <ul>
+        <li>Membunuh sel yang terinfeksi (sel yang terinfeksi virus dan sel tumor)</li>
+        <li>Dengan melepaskan perforin yang dapat merusak membran sel dan granzyme yang dapat merusak sel dan mengakibatkan apoptosis</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="materi-detail" id="materi-2">
+    <button class="back-btn" onclick="backToMateri()">← Kembali ke Daftar Materi</button>
+    <div class="content-text">
+      <h2>🦠 Respon Imun terhadap Bakteri, Virus dan Parasit</h2>
+      <p><em>Oleh: DR. Huntari Harahap, M. Biomed</em></p>
+      <h3>🧬 Sistem Imun</h3>
+      <p><strong>Non Spesifik:</strong></p>
+      <ul>
+        <li><strong>Humoral:</strong> Complemen, Interferon (INF), CRP</li>
+        <li><strong>Seluler:</strong> Fagosit mononuclear, Sel NK, PMN, Sel Mast, Bosofil</li>
+      </ul>
+      <p><strong>Spesifik:</strong></p>
+      <ul>
+        <li><strong>Humoral:</strong> Sel B (Imunoglobulin)</li>
+        <li><strong>Seluler:</strong> Sel T</li>
+      </ul>
+      <h3>🛡️ Pertahanan Lapis Pertama: Pertahanan Fisik (Physical Barrier)</h3>
+      <p>Ada 2 sistem kekebalan tubuh:</p>
+      <ol>
+        <li><strong>Sistem kekebalan nonspesifik (didapat)</strong> — Innate Immune System</li>
+        <li><strong>Sistem kekebalan spesifik (dipelajari/adaptif)</strong> — Learned/Adaptive Immune System</li>
+      </ol>
+      <h3>🦠 Patogen pada Tubuh Manusia</h3>
+      <ol>
+        <li>Bakteri</li>
+        <li>Virus</li>
+        <li>Jamur</li>
+        <li>Protozoa bersel satu</li>
+        <li>Parasit</li>
+      </ol>
+      <h3>🔬 Interaksi Host dengan Bakteri</h3>
+      <p>Mekanisme pertahanan tubuh terhadap infeksi bakteri dipengaruhi oleh struktur dinding sel Gram Positif dan Gram Negatif, serta Mycobakterium.</p>
+      <p>Semua bakteri mempunyai membran lapis dalam disebut dengan <strong>Peptidoglikan</strong>.</p>
+      <h4>Bakteri Gram Positif</h4>
+      <ul>
+        <li>Mempunyai <strong>Asam Teikoat</strong></li>
+        <li>Dibunuh fagosit dengan bantuan opsonisasi imunoglobulin dan aktivasi complemen yang tidak melalui jalur lisis</li>
+        <li>Sering melepaskan <strong>Eksotoksin</strong> yang merusak fagosit, merusak jaringan, merusak SSP, dan menyebabkan kematian</li>
+      </ul>
+      <h4>Bakteri Gram Negatif</h4>
+      <ul>
+        <li>Punya membran kedua</li>
+        <li>Dapat dihancurkan oleh imunoglobulin dengan bantuan aktivasi komplemen melalui jalur lisis</li>
+        <li>Contoh: Neisseria meningitidis</li>
+      </ul>
+      <h3>🔗 Komponen Lain yang Berperan</h3>
+      <h4>Flagel/Fimbrie (antigenik)</h4>
+      <p>Bereaksi dengan antibodi. Contoh: E. coli, Salmonella, Pseudomonas, Proteus.</p>
+      <h4>Kapsul</h4>
+      <ul>
+        <li>Protein dan polisakaridanya merangsang sistem imun humoral</li>
+        <li>Menempel pada membran mukosa</li>
+        <li>Anti fagositasis</li>
+      </ul>
+      <h3>⚔️ Interaksi Mikroba dengan Sistem Imun</h3>
+      <p>Patogenesis ada 2: <strong>Toksik</strong> dan <strong>Invasif</strong>.</p>
+      <p>Contoh bakteri yang tidak invasif tetapi toksik: Corynebacterium Difteri dan Vibrio Cholerae.</p>
+      <p><strong>Cara mikroba menghindari respon imun:</strong></p>
+      <ol>
+        <li>Produksi toksin → menghambat khemotaksis</li>
+        <li>Membentuk kapsul → fagosit tidak terjadi</li>
+        <li>Memproduksi molekul yang menghambat fungsi lisosom dengan fagosom, atau menghambat makrofag berinteraksi dengan IFN</li>
+        <li>Menurunkan sitokin proinflamatorik TNF-α, IL-1β, IL-6</li>
+      </ol>
+      <h3>🧪 Mekanisme Infeksi Bakteri</h3>
+      <p>Bakteri yang menginfeksi manusia dibagi dalam dua kelompok:</p>
+      <ol>
+        <li><strong>Bakteri ekstraseluler</strong></li>
+        <li><strong>Bakteri intraseluler</strong></li>
+      </ol>
+      <p>Respons imun terhadap patogen ekstraselular dan intraseluler berbeda.</p>
+      <h3>🦠 Bakteri Ekstraseluler</h3>
+      <p>Bakteri yang mampu membelah diri di luar sel host. <strong>Contoh:</strong> Staphylococcus, Streptococcus, Meningococcus, Gonococcus, Neisseria, E. Coli, Clostridium.</p>
+      <p>Bakteri ekstraseluler menyebabkan infeksi dengan dua cara:</p>
+      <ol>
+        <li>Bakteri menginduksi inflamasi</li>
+        <li>Bakteri menghasilkan toksin</li>
+      </ol>
+      <ul>
+        <li><strong>Endotoksin (LPS):</strong> Komponen dinding sel bakteri dan stimulator poten sitokin</li>
+        <li><strong>Eksotoksin:</strong> Secara aktif disekresi oleh bakteri</li>
+      </ul>
+      <h3>🛡️ Imunitas Bawaan terhadap Bakteri Ekstraseluler</h3>
+      <p>Prinsip utama: aktivasi komplemen, fagositosis, dan respon radang.</p>
+      <h3>✅ Imunitas Dapatan terhadap Bakteri Ekstraseluler</h3>
+      <p>Imunitas humoral merupakan hal utama. Fungsi: memblok infeksi, mengeliminasi mikroba, dan menetralkan toxin.</p>
+      <h3>🔒 Imunitas terhadap Bakteri Intraselular</h3>
+      <p><strong>Contoh:</strong> Mycobacteria, Listeria monocytogenes, Legionella pneumophila.</p>
+      <h4>Imunitas Bawaan terhadap Bakteri Intraselular</h4>
+      <p>Diperantarai oleh fagosit dan sel NK.</p>
+      <h4>Imunitas Dapatan terhadap Bakteri Intraselular</h4>
+      <p>Mekanisme utama: imunitas termedia sel T. Dua tipe reaksi:</p>
+      <ol>
+        <li>Aktivasi makrofag dipengaruhi ligand CD40 L</li>
+        <li>Interferon-γ membunuh mikroba yang telah difagosit</li>
+      </ol>
+      <h3>🦠 RESPON IMUN TERHADAP INFEKSI VIRUS</h3>
+      <h4>Innate Immune Response</h4>
+      <ol>
+        <li>Induksi Interferon Tipe I</li>
+        <li>Aktivasi sel NK</li>
+      </ol>
+      <h4>Respon Imun Non Spesifik (Innate)</h4>
+      <ul>
+        <li><strong>Type I IFNs (IFN α and IFN β)</strong> — virus-infected cells</li>
+        <li><strong>Type II IFN or IFN γ</strong> — activated T and NK cells</li>
+        <li><strong>Natural Killer (NK) cells</strong></li>
+        <li><strong>Macrophages</strong></li>
+      </ul>
+      <h4>Respon Imun Spesifik (Adaptif)</h4>
+      <ul>
+        <li><strong>Cytotoxic T lymphocytes (CTLs)</strong></li>
+        <li><strong>Helper T (Th) cells</strong></li>
+        <li><strong>Antiviral antibodies</strong></li>
+      </ul>
+      <p><strong>Humoral:</strong> Efektif terhadap virus fase ekstrasel, mencegah virus menempel dan masuk ke sel host, IgA untuk virus mukosa.</p>
+      <p><strong>Seluler:</strong> Sel CD8/CTL membunuh sel yang terinfeksi dengan bantuan MHC-1.</p>
+      <h4>Mekanisme Evasi Virus terhadap Respon Antiviral</h4>
+      <ul>
+        <li>Menghindar dari sasaran antibodi dan sel T: variasi antigen, perubahan asam amino (mutasi) — HIV, Influenza (antigenic drift & shift)</li>
+        <li>Disrupt interferon system</li>
+        <li>Mengkode sitokin homolog (vIL-10, vIL-6, vTNFR)</li>
+        <li>Encode complement protein homologs</li>
+        <li>Disrupt chemokine network</li>
+        <li>Control the expression MHC molecules (CMV, herpes)</li>
+      </ul>
+      <h4>💉 Vaksin Virus</h4>
+      <p><strong>Vaksin Hidup:</strong> Adenovirus, Measles, Varicella, Mumps, Polio (Sabin), Rotavirus, Rubella, Variola, Yellow fever.</p>
+      <p><strong>Vaksin Mati:</strong> Hepatitis A, Influenza, Polio (Salk), Rabies.</p>
+      <h3>🐛 RESPON IMUN TERHADAP PARASIT</h3>
+      <p>Parasit merupakan organisme yang kebutuhan makanannya bergantung pada organisme lain (inang).</p>
+      <ul>
+        <li><strong>Endoparasit:</strong> Hidup di dalam tubuh inang</li>
+        <li><strong>Ektoparasit:</strong> Hidup di luar tubuh inang</li>
+      </ul>
+      <h4>Respon Imun terhadap Protozoa Intraseluler</h4>
+      <p>Infeksi protozoa mengaktifkan sel T dan sel B. Sel T helper 1 memproduksi cytokine yang mengaktifkan makrofag, Sel NK, dan IFN-γ. Sel B mengsekresikan antibodi (IgG dan IgE).</p>
+      <h4>Respon Imun terhadap Metazoa (Helmintes)</h4>
+      <ul>
+        <li>Usus menstimulasi respon imun hospes ke arah Th2</li>
+        <li>Sel NeMac (Nematode Elicite Macrophage) atau sel AAM (Alternatively Activated Macrophage) berperan sebagai APC</li>
+        <li>Sel NeMac menghambat proliferasi sel T melalui NO, prostaglandin, IL-10 dan TGF-β</li>
+        <li>Protein YM1 (eosinophil activating factor) mengakibatkan infiltrasi lokal eosinofil</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="materi-detail" id="materi-3">
+    <button class="back-btn" onclick="backToMateri()">← Kembali ke Daftar Materi</button>
+    <div class="content-text">
+      <h2>🔬 Konsep Dasar Imunologi: Sel dan Jaringan Sistem Imun</h2>
+      <p><em>Oleh: dr. Huntari Harahap, M. Biomed, FKIK UNJA 2024</em></p>
+      <h3>📖 Definisi</h3>
+      <ul>
+        <li><strong>Immunology (Latin):</strong> Immunis + Logos</li>
+        <li><strong>Imunologi:</strong> Studi mekanisme biologis seluler, molekular, dan fungsional sistem imun</li>
+        <li><strong>Sistem Imun:</strong> Terdiri dari molekuler, seluler, jaringan, dan organ untuk proteksi tubuh</li>
+        <li><strong>Imunitas:</strong> Proteksi dari penyakit infeksi</li>
+      </ul>
+      <h3>🧫 Sel-Sel Sistem Imun Non Spesifik</h3>
+      <h4>Sel Fagosit</h4>
+      <ul>
+        <li><strong>Fagosit mononuklier:</strong> Sel monosit dan makrofag → fagosit profesional dan APC</li>
+        <li><strong>Fagosit polimorfonuklier:</strong> Neutrofil (7-10 jam), Eosinofil (melawan parasit), Basofil (mediator)</li>
+      </ul>
+      <h4>Kandungan Sel Fagosit</h4>
+      <ul>
+        <li><strong>Lisosom:</strong> Enzim pencernaan</li>
+        <li><strong>Fagolisosom:</strong> Gabungan fagosom + lisosom, menurunkan pH</li>
+        <li><strong>Lisozim:</strong> Mencerna ikatan proteoglikan dinding bakteri Gram Positif</li>
+        <li><strong>Defensin:</strong> Sitotoksik, antibakterial luas, antimikotik</li>
+        <li><strong>Laktoferin:</strong> Mengikat zat besi esensial untuk bakteri</li>
+      </ul>
+      <h4>Sel Nol (Null Cells)</h4>
+      <ul>
+        <li>Berupa Large Granular Lymphocyte (LGL)</li>
+        <li><strong>Sel NK:</strong> Membunuh sel tumor dan sel terinfeksi virus tanpa bantuan antibodi</li>
+        <li><strong>Sel K:</strong> Efektor ADCC (Antibody Dependent Cellular Cytotoxicity)</li>
+      </ul>
+      <h4>Sel Mediator</h4>
+      <ul>
+        <li><strong>Basofil dan mastosit:</strong> Meningkatkan permeabilitas kapiler dan respon inflamasi</li>
+        <li><strong>Trombosit:</strong> Agregasi dinding vaskuler, respon inflamasi</li>
+      </ul>
+      <h3>🎯 Sel-Sel Sistem Imun Spesifik</h3>
+      <h4>Sel T</h4>
+      <ul>
+        <li>Asal dari sumsum tulang → timus → subkapsuler</li>
+        <li>Subset: Th (T helper), Ts (T suppressor), Tc (cytotoxic), Th0</li>
+        <li>Fungsi: Membantu sel B produksi antibodi, menghancurkan sel terinfeksi virus, mengaktifkan makrofag</li>
+      </ul>
+      <h4>Sel B</h4>
+      <ul>
+        <li>Perkembangan dalam sumsum tulang (antigen independen)</li>
+        <li>Fungsi utama: memproduksi antibodi</li>
+        <li>Di bawah pengaruh Sel T → berproliferasi → sel plasma → Ig spesifik</li>
+      </ul>
+      <h3>⚖️ Sistem Imun</h3>
+      <ul>
+        <li><strong>Sistem Imun Non Spesifik (SIN):</strong> Fisik (kulit, silia), Larut (komplemen, interferon, CRP), Seluler (fagosit, NK, mastosit)</li>
+        <li><strong>Sistem Imun Spesifik (SIS):</strong> Humoral (Sel B), Seluler (Sel T)</li>
+      </ul>
+      <h3>📊 Perbedaan Respon Imun Spesifik dan Non Spesifik</h3>
+      <table>
+        <tr><th>Aspek</th><th>Non-Spesifik</th><th>Spesifik</th></tr>
+        <tr><td>Resistensi</td><td>Tidak berubah oleh infeksi</td><td>Membaik oleh infeksi berulang (memori)</td></tr>
+        <tr><td>Spesifitas</td><td>Efektif terhadap semua MO</td><td>Spesifik untuk MO yang mensensitisasi</td></tr>
+        <tr><td>Sel penting</td><td>Fagosit, Sel NK</td><td>Limfosit</td></tr>
+        <tr><td>Respon Time</td><td>Menit/jam, selalu siap</td><td>Hari (lambat)</td></tr>
+      </table>
+      <h3>🛡️ Sistem Imun Non Spesifik</h3>
+      <p>Pertahanan tubuh <strong>terdepan</strong>. Respon langsung terhadap antigen. Non spesifik = tidak ditujukan MO tertentu, siap sejak lahir.</p>
+      <h4>Faktor yang Berpengaruh</h4>
+      <ol><li>Spesies</li><li>Perbedaan individu dan usia</li><li>Suhu</li><li>Pengaruh hormon</li><li>Faktor nutrisi</li><li>Flora bakteri normal</li></ol>
+      <h3>🧱 Pertahanan Fisik/Mekanik</h3>
+      <p>Kulit, selaput lendir, silia saluran napas, batuk dan bersin.</p>
+      <h3>🧪 Pertahanan Biokimia</h3>
+      <ul>
+        <li>pH asam keringat dan sebaseus → antimikrobal</li>
+        <li>Lisozim dalam keringat, ludah, air mata → hancurkan dinding sel Gram Positif</li>
+        <li>Laktoferin dan asam neuraminik dalam ASI → antibakteri (E. coli, Staphylococcus)</li>
+        <li>Asam HCl dalam lambung → lingkungan antibakteri</li>
+      </ul>
+      <h3>💧 Pertahanan Humoral</h3>
+      <h4>1. Komplemen</h4>
+      <p><strong>Fungsi:</strong> Lisis membran bakteri, kemotaksis, opsonisasi.</p>
+      <h4>Mediator Komplemen</h4>
+      <ul>
+        <li><strong>C3a dan C5a:</strong> Kemotaksis + anafilatoksin → degranulasi mastosit</li>
+        <li><strong>C3b:</strong> Opsonin dan adherens imun</li>
+        <li><strong>C4b:</strong> Opsonin</li>
+        <li><strong>C5-6-7:</strong> Kemotaksis</li>
+        <li><strong>C8-9:</strong> Sitolisin (hancurkan sel)</li>
+      </ul>
+      <h4>Anafilatoksin (C3a, C5a)</h4>
+      <p>Menimbulkan degranulasi mastosit/basofil dan pelepasan histamin. Meningkatkan permeabilitas vaskular dan kontraksi otot polos.</p>
+      <h4>Kemotaksin (C3a, C5a, C5-6-7)</h4>
+      <p>Bahan yang menarik dan mengerahkan sel-sel fagosit.</p>
+      <h4>Opsonisasi (C3b, C4b)</h4>
+      <p>Proses melapisi antigen oleh antibodi/komplemen → lebih mudah difagosit.</p>
+      <h4>Aktivasi Komplemen</h4>
+      <p>C1q (pertama, butuh IgG1-3, IgM) → C1r → C1s (aktif, esterolitik & proteolitik) → C4.</p>
+      <h4>2. Interferon</h4>
+      <p>Glikoprotein antivirus. Menginduksi sel sekitar menjadi resisten terhadap virus. Mengaktifkan sel NK.</p>
+      <h4>3. CRP</h4>
+      <p>Protein fase akut, kadar meningkat saat infeksi. Opsonisasi bakteri.</p>
+      <h3>🛡️ Pertahanan Seluler</h3>
+      <h4>Fagosit</h4>
+      <p>Alur: kemotaksis → menelan → fagositosis → membunuh → lisis.</p>
+      <h4>Makrofag</h4>
+      <p>Hidup lama, melepaskan lisozim, komplemen, interferon, sitokin.</p>
+      <h4>LGL</h4>
+      <p>Banyak sitoplasma, granul azurofilik, pseudopodia, nukleus eksentris. Bersifat seperti sel NK.</p>
+    </div>
+  </div>
+
+  <div class="materi-detail" id="materi-4">
+    <button class="back-btn" onclick="backToMateri()">← Kembali ke Daftar Materi</button>
+    <div class="content-text">
+      <h2>💊 Teknik Penulisan Resep Kedokteran</h2>
+      <p><em>Oleh: Elisma, S.Farm., M.Farm., Apt</em></p>
+      <h3>👨‍⚕️ Tindakan Dokter untuk Pasien</h3>
+      <ol><li>Anamnesis</li><li>Pemeriksaan Fisik</li><li>Diagnosis</li><li>Merekomendasikan terapi</li></ol>
+      <h3>💉 Jenis Terapi</h3>
+      <h4>A. Farmakologi</h4>
+      <ul><li><strong>Profilaktik:</strong> Pencegahan</li><li><strong>Simptomatik:</strong> Mengatasi gejala</li><li><strong>Kausal:</strong> Menghilangkan penyebab</li></ul>
+      <h4>B. Non Farmakologi</h4>
+      <ul><li>Pembedahan</li><li>Radioterapi</li><li>Fisioterapi</li><li>Pengaturan pola makan & hidup</li></ul>
+      <h3>⚖️ Pertimbangan Pemilihan Obat</h3>
+      <table><tr><th>Manfaat (Efficacy)</th><th>Keamanan (Safety)</th><th>Harga (Cost)</th><th>Kesesuaian (Suitability)</th></tr></table>
+      <h3>📏 Pertimbangan Penentuan Dosis</h3>
+      <ol><li>Dosis Terapi</li><li>Dosis Pada Anak</li><li>Dosis Pada Lansia</li><li>Dosis Pada Obesitas</li></ol>
+      <h3>📝 Pengertian Resep</h3>
+      <p>Menurut Permenkes No 73/2016: <strong>Resep adalah permintaan tertulis dari dokter/dokter gigi kepada apoteker untuk menyediakan dan menyerahkan obat.</strong></p>
+      <h3>✅ Penulisan Resep yang Tepat dan Rasional</h3>
+      <p>Rasional = kemanfaatan > risiko efek samping. Harus: tepat indikasi, tepat obat, tepat penderita, tepat dosis, waspada ESO.</p>
+      <h3>⚠️ Dampak Peresepan Tidak Rasional</h3>
+      <ul><li>Peningkatan toksisitas</li><li>Interaksi obat</li><li>Tidak tercapai efektivitas</li><li>Meningkatkan biaya</li></ul>
+      <h3>👥 Yang Berhak Menulis Resep</h3>
+      <ol><li>Dokter umum & spesialis</li><li>Dokter gigi (obat gigi & mulut)</li><li>Dokter hewan (untuk hewan)</li></ol>
+      <h3>📋 Ketentuan Penulisan Resep</h3>
+      <ul>
+        <li>Ditulis dengan tinta hitam/biru, tidak mudah terhapus</li>
+        <li>Hindari rumus kimia (H2O2, NaCl)</li>
+        <li>Hindari singkatan meragukan</li>
+        <li>Boleh >1 R/ di satu kertas</li>
+        <li>Tulis di hadapan pasien, jangan ragu-ragu</li>
+        <li>Perhatikan kondisi ekonomi pasien</li>
+      </ul>
+      <h3>📑 Macam Formula dalam Preskripsi</h3>
+      <h4>1. Formula Magistralis</h4>
+      <p>Resep racikan, diawali <strong>R/</strong> (Recipe = ambillah).</p>
+      <h4>2. Formula Officinalis</h4>
+      <p>Tercantum dalam farmakope dan buku standar.</p>
+      <h4>3. Formula Spesialistic</h4>
+      <p>Menggunakan obat paten/dagang.</p>
+      <h3>📋 Unsur-Unsur Resep</h3>
+      <ol>
+        <li><strong>Inscriptio:</strong> Nama, alamat, SIP dokter, tanggal</li>
+        <li><strong>Invocatio:</strong> Tanda R/ (resipe = ambillah)</li>
+        <li><strong>Prescriptio:</strong> Nama obat, bentuk sediaan, dosis, jumlah</li>
+        <li><strong>Signatura:</strong> Petunjuk cara pakai</li>
+        <li><strong>Subscriptio:</strong> Tanda tangan dokter</li>
+        <li><strong>Pro:</strong> Nama, alamat, umur, jk, BB pasien</li>
+      </ol>
+      <h3>📖 Bahasa Latin dalam Resep</h3>
+      <p><strong>Alasan:</strong> bahasa mati, internasional, tidak dualisme, faktor psikologi.</p>
+      <h3>🔢 Penulisan Jumlah Obat (Angka Romawi)</h3>
+      <table><tr><th>I=1</th><th>V=5</th><th>X=10</th><th>L=50</th><th>C=100</th><th>M=1000</th></tr></table>
+      <h3>📚 Singkatan Latin dalam Resep</h3>
+      <table>
+        <tr><th>Singkatan</th><th>Arti</th><th>Singkatan</th><th>Arti</th></tr>
+        <tr><td>C</td><td>Sendok makan (15ml)</td><td>cth</td><td>Sendok teh (5ml)</td></tr>
+        <tr><td>dd</td><td>Sehari</td><td>dtd</td><td>Berikan sebanyak dosis</td></tr>
+        <tr><td>f.</td><td>Buat</td><td>f.l.a</td><td>Buat menurut cara semestinya</td></tr>
+        <tr><td>gtt</td><td>Tetes</td><td>inj</td><td>Injeksi</td></tr>
+        <tr><td>iter</td><td>Harap diulang</td><td>m.f</td><td>Campurlah dan buatlah</td></tr>
+        <tr><td>u.e</td><td>Obat luar</td><td>Ungt</td><td>Salep</td></tr>
+        <tr><td>dc</td><td>Sedang makan</td><td>Vespere</td><td>Sore</td></tr>
+      </table>
+      <h3>🚨 Resep Cito</h3>
+      <p>Tanda <strong>CITO</strong> pada bagian atas resep = pembuatan harus didahulukan. Hanya untuk kondisi gawat.</p>
+      <h3>📝 Contoh Resep</h3>
+      <h4>Contoh 1:</h4>
+      <p><strong>R/ Cap Amoksisilin 500 mg No. XV<br>S. 3 dd cap I (paraf)<br>Pro: Tn Amir | Usia: Dewasa</strong></p>
+      <p>Arti: Amoksisilin 500 mg, jumlah 15. Aturan: 3× sehari 1 kapsul.</p>
+      <h4>Contoh 2:</h4>
+      <p><strong>R/ CTM 2 mg, DMP 7,5 mg, Prednison 2 mg<br>mf.pulv dtd No. XV<br>S. 3 dd pulv I (paraf)<br>Pro: Siti Kirani | Umur: 7 tahun</strong></p>
+      <p>Arti: Racik serbuk, jumlah 15. Aturan: 3× sehari 1 serbuk.</p>
+    </div>
+  </div>
+
+  <div class="materi-detail" id="materi-5">
+    <button class="back-btn" onclick="backToMateri()">← Kembali ke Daftar Materi</button>
+    <div class="content-text">
+      <h2>⚗️ Pengantar Farmakologi</h2>
+      <p><em>Oleh: Mara Imam Taufiq Siregar, Dept. of Pharmacology & Therapeutic, UNJA</em></p>
+      <h3>📖 Pendahuluan</h3>
+      <p><strong>Farmakologi:</strong> Farmakon = Obat, Logos = Ilmu. Mempelajari efek obat terhadap fungsi biokimia sel, fisiologi, ADME, efek, keracunan, dan penggunaan obat.</p>
+      <h4>Istilah Penting</h4>
+      <ul>
+        <li><strong>Farmakokinetik:</strong> ADME — "nasib obat dalam tubuh"</li>
+        <li><strong>Farmakodinamik:</strong> Efek obat pada tubuh — "nasib tubuh dengan adanya obat"</li>
+        <li><strong>Toksikologi:</strong> Efek racun obat</li>
+        <li><strong>Farmakoterapi:</strong> Penggunaan obat untuk mengobati penyakit</li>
+        <li><strong>Bioavailabilitas:</strong> Fraksi obat yang mencapai sirkulasi sistemik</li>
+        <li><strong>Posologi:</strong> Ilmu dosis obat</li>
+        <li><strong>Kemoterapi:</strong> Menghancurkan parasit/kanker (antibiotik, sulfa)</li>
+      </ul>
+      <h3>📚 Sejarah Farmakologi</h3>
+      <ul>
+        <li><strong>Paracelsus (1493-1541):</strong> "All things are poison, the dose alone causes a thing not to be poison"</li>
+        <li><strong>Rudolf Buchheim (1820-1879):</strong> First institute of Pharmacology</li>
+        <li><strong>John J. Abel (1857-1938):</strong> "Father of American Pharmacology"</li>
+      </ul>
+      <h3>⚗️ Sifat Alamiah Obat</h3>
+      <p>Obat = substansi yang membawa perubahan fungsi biologik melalui aksi kimia. Berinteraksi dengan <strong>reseptor obat</strong>.</p>
+      <ul>
+        <li><strong>Xenobiotic:</strong> Obat yang tidak disintesis tubuh (amoksisilin, parasetamol)</li>
+        <li><strong>Toksin:</strong> Racun organic (curare) atau inorganic (logam, arsen)</li>
+      </ul>
+      <h3>💉 Rute Pemberian Obat</h3>
+      <ul>
+        <li>Inj. intravena (i.v.) — paling cepat</li>
+        <li>Inj. intramuscular (i.m.)</li>
+        <li>Inj. subkutaneous (s.c.)</li>
+        <li>Oral (p.o.) — paling umum</li>
+        <li>Inhalation, Sublingual, Topical, Transdermal</li>
+      </ul>
+      <h3>🔄 Farmakokinetik (ADME)</h3>
+      <h4>1. Absorpsi</h4>
+      <p>Transfer obat dari tempat pemberian ke aliran darah. Faktor: aliran darah, luas permukaan, waktu kontak.</p>
+      <h4>2. Distribusi</h4>
+      <p>Obat meninggalkan aliran darah ke interstisium/sel. Tergantung: permeabilitas kapiler, ikatan protein plasma.</p>
+      <h4>3. Metabolisme</h4>
+      <p>Perubahan struktur kimia obat. <strong>Hati = tempat utama.</strong></p>
+      <h4>4. Ekskresi</h4>
+      <p>Pengeluaran obat (metabolit/asli) melalui ginjal dan organ ekskresi lain.</p>
+      <h3>🎯 Farmakodinamik</h3>
+      <h4>Mekanisme Kerja Obat</h4>
+      <ul>
+        <li>Menghambat enzim (Asam mefenamat → COX2)</li>
+        <li>Depresant/Stimulant (beta blocker / beta-2 agonist)</li>
+        <li>Bekerja pada dinding sel, membran plasma, sitoplasma</li>
+        <li>Bekerja secara biomolekuler: agonis atau antagonis</li>
+        <li>Reaksi kimia langsung (asam lambung + NaHCO3)</li>
+      </ul>
+      <h3>🔑 Reseptor Obat</h3>
+      <p>Makromolekul target pada permukaan/intraseluler. 2 konsep: <strong>agonis</strong> dan <strong>antagonis</strong>.</p>
+      <h4>Agonis</h4>
+      <p>Mengikat reseptor dan menimbulkan respon. Besarnya tergantung konsentrasi.</p>
+      <h4>Antagonis</h4>
+      <ul>
+        <li><strong>Kompetitif:</strong> Berkompetisi dengan ligand reseptor</li>
+        <li><strong>Non kompetitif:</strong> Berikatan di situs lain, mengurangi aktivitas ligand</li>
+        <li><strong>Agonis parsial:</strong> Memblokir tempat pengikatan ligand agonis</li>
+      </ul>
+      <h4>Istilah Penting</h4>
+      <ul>
+        <li><strong>Efikasi:</strong> Respon maksimal obat</li>
+        <li><strong>Potensi:</strong> Semakin rendah dosis yang dibutuhkan → makin poten</li>
+        <li><strong>Indeks terapi:</strong> Rasio dosis toksis / dosis efektif</li>
+        <li><strong>Antidotum:</strong> Obat melawan racun</li>
+        <li><strong>Potensiasi:</strong> Kombinasi 2 obat dengan efek > jumlah masing-masing</li>
+      </ul>
+      <h3>⚠️ Faktor yang Mempengaruhi Kerja Obat</h3>
+      <h4>1. Dosis</h4>
+      <ul>
+        <li><strong>LD50:</strong> Dosis mematikan 50% hewan uji</li>
+        <li><strong>Dosis minimal:</strong> Dosis terkecil dengan efek terapeutis</li>
+        <li><strong>Dosis maksimal:</strong> Dosis terbesar tanpa efek toksis</li>
+      </ul>
+      <h4>2. Toleransi</h4>
+      <p>Resistensi terhadap dosis biasa. Contoh: morfin.</p>
+      <h4>3. Idiosinkrasi</h4>
+      <p>Efek abnormal dari obat. Contoh: morfin menenangkan sebagian orang, membuat orang lain stimulant.</p>
+      <h4>4. Pengaruh Keadaan Sakit</h4>
+      <p>Aspirin hanya menurunkan suhu bila demam. Diuretik terlihat bila ada edem.</p>
+      <h3>⚠️ Efek Samping Obat</h3>
+      <ul>
+        <li><strong>Hipersensitif:</strong> Reaksi alergi (penisilin → SJS)</li>
+        <li><strong>Habituasi:</strong> Kebiasaan psikodependent</li>
+        <li><strong>Adiksi:</strong> Ketagihan dengan gejala putus obat</li>
+      </ul>
+      <h3>💊 Kombinasi Obat</h3>
+      <p>Tujuan: toksisitas ↓, dosis ↓, efek ↑.</p>
+      <ul>
+        <li><strong>Sumasi:</strong> Efek = jumlah aljabar masing-masing</li>
+        <li><strong>Sinergisme:</strong> Efek > jumlah aljabar masing-masing</li>
+      </ul>
+      <h3>📋 Penggolongan Obat (Permenkes)</h3>
+      <ul>
+        <li><strong>Obat bebas:</strong> Paracetamol, Vit C, OBH</li>
+        <li><strong>Obat bebas terbatas (W):</strong> Antihistamin, klorokuin</li>
+        <li><strong>Obat keras (G):</strong> Adrenalin, antibiotika</li>
+        <li><strong>OWA:</strong> Salbutamol, ranitidin</li>
+        <li><strong>Narkotika:</strong> Morfin, kodein, opium</li>
+        <li><strong>Psikotropika:</strong> Diazepam, fenobarbital</li>
+      </ul>
+      <h3>🔬 Uji Klinik Obat</h3>
+      <ul>
+        <li><strong>Fase I:</strong> Keamanan pada manusia (20-80 orang)</li>
+        <li><strong>Fase II:</strong> Efek farmakologik (100-200 orang)</li>
+        <li><strong>Fase III:</strong> Efektivitas, dibandingkan plasebo (500+ orang)</li>
+        <li><strong>Fase IV:</strong> Post-marketing surveillance</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="materi-detail" id="materi-6">
+    <button class="back-btn" onclick="backToMateri()">← Kembali ke Daftar Materi</button>
+    <div class="content-text">
+      <h2>🩹 Wound Healing (Penyembuhan Luka)</h2>
+      <p><em>Oleh: Fairuz Quzwain, Anatomical Pathology, FKIK UNJA</em></p>
+      <h3>🎯 Learning Objectives</h3>
+      <ul><li>Memahami fase penyembuhan luka</li><li>Mengidentifikasi sel-sel kunci</li><li>Menjelaskan mekanisme</li><li>Mengenali komplikasi</li></ul>
+      <h3>📖 Definisi</h3>
+      <p>Proses biologis kompleks untuk <strong>memulihkan integritas jaringan</strong> dan <strong>mempertahankan fungsi</strong>. Melibatkan sel, ECM, dan growth factors.</p>
+      <h3>🩹 Jenis Penyembuhan</h3>
+      <table>
+        <tr><th>Jenis</th><th>Karakteristik</th></tr>
+        <tr><td>Primary Intention</td><td>Luka bersih, tepi rapat → minimal scar</td></tr>
+        <tr><td>Secondary Intention</td><td>Kehilangan jaringan luas → scar besar</td></tr>
+        <tr><td>Tertiary Intention</td><td>Penutupan primer tertunda</td></tr>
+      </table>
+      <h3>📅 Fase Penyembuhan Luka</h3>
+      <table>
+        <tr><th>Fase</th><th>Waktu</th><th>Karakteristik</th></tr>
+        <tr><td>Hemostasis</td><td>Menit – jam</td><td>Vasokontriksi, aktivasi trombosit, pembekuan</td></tr>
+        <tr><td>Inflamasi</td><td>Hari 1-3</td><td>Neutrofil, makrofag, fagositosis, sitokin</td></tr>
+        <tr><td>Proliferasi</td><td>Hari 3-21</td><td>Granulasi, angiogenesis, fibroplasia, epitelisasi</td></tr>
+        <tr><td>Remodeling</td><td>Minggu – bulan</td><td>Kolagen III→I, kekuatan tarik meningkat</td></tr>
+      </table>
+      <h3>🩸 Hemostasis</h3>
+      <ul>
+        <li><strong>Vasoconstriction</strong> — penyempitan pembuluh darah</li>
+        <li><strong>Platelet activation</strong> — aktivasi trombosit</li>
+        <li><strong>Fibrin clot formation</strong> — pembentukan gumpalan fibrin</li>
+      </ul>
+      <h4>Role of Platelets</h4>
+      <p>Melepaskan <strong>PDGF</strong> (aktivasi fibroblas) dan <strong>TGF-β</strong> (sintesis kolagen). Memulai kaskade penyembuhan.</p>
+      <h3>🔥 Inflammation</h3>
+      <h4>Dominant Cells</h4>
+      <ul>
+        <li><strong>Neutrophils</strong> (early) — sel pertama yang datang</li>
+        <li><strong>Macrophages, Lymphocyte</strong> (later)</li>
+      </ul>
+      <h4>Role of Macrophages</h4>
+      <p><strong>Key regulators of healing.</strong> Memproduksi: VEGF (angiogenesis), FGF (pertumbuhan fibroblas), TGF-β (sintesis kolagen). Mengaktifkan fibroblasts.</p>
+      <h3>🌱 Proliferation</h3>
+      <ul>
+        <li><strong>Granulation tissue:</strong> Jaringan vaskular kaya, fibroblas aktif</li>
+        <li><strong>Angiogenesis:</strong> Pembentukan pembuluh darah baru (VEGF)</li>
+        <li><strong>Fibroplasia:</strong> Fibroblas → Type III collagen</li>
+        <li><strong>Re-epithelialization:</strong> Epitel menutupi permukaan luka</li>
+      </ul>
+      <h3>🔄 Remodeling</h3>
+      <ul>
+        <li>Kolagen III → Tipe I</li>
+        <li>Increased tensile strength</li>
+        <li>Reduced vascularity</li>
+      </ul>
+      <h3>📈 Growth Factors</h3>
+      <table>
+        <tr><th>Growth Factor</th><th>Fungsi</th></tr>
+        <tr><td>PDGF</td><td>Fibroblast activation</td></tr>
+        <tr><td>VEGF</td><td>Angiogenesis</td></tr>
+        <tr><td>TGF-β</td><td>Collagen synthesis</td></tr>
+        <tr><td>EGF</td><td>Epithelial regeneration</td></tr>
+      </table>
+      <h3>⚠️ Local Factors Affecting Healing</h3>
+      <ul><li>Infection — infeksi</li><li>Ischemia — iskemia</li><li>Foreign body — benda asing</li></ul>
+      <h3>🩺 Systemic Factors</h3>
+      <ul><li>Diabetes</li><li>Nutrition — nutrisi</li><li>Age — usia</li><li>Steroids — steroid</li></ul>
+      <h3>⚠️ Complications</h3>
+      <h4>Keloid vs Hypertrophic Scar</h4>
+      <table>
+        <tr><th>Keloid</th><th>Hypertrophic Scar</th></tr>
+        <tr><td>Tumbuh melebihi batas luka</td><td>Terbatas pada area luka</td></tr>
+      </table>
+      <h4>Chronic Wounds</h4>
+      <ul><li>Diabetic ulcers — ulkus diabetik</li><li>Venous ulcers — ulkus vena</li></ul>
+    </div>
+  </div>
+
+  <div class="materi-detail" id="materi-7">
+    <button class="back-btn" onclick="backToMateri()">← Kembali ke Daftar Materi</button>
+    <div class="content-text">
+      <h2>📏 Penilaian Status Gizi - Metode Antropometri</h2>
+      <p><em>Oleh: dr. Dea Anenta Veonika M.Gz, CBCFF, FKIK UNJA 2025</em></p>
+      <h3>📋 Penilaian Status Gizi</h3>
+      <p>Dinilai secara <strong>langsung</strong> dan <strong>tidak langsung</strong>.</p>
+      <h3>✅ Kelebihan Antropometri</h3>
+      <ul>
+        <li>Murah, sederhana, aman, tidak perlu ahli</li>
+        <li>Dapat identifikasi status gizi baik/sedang/kurang/buruk</li>
+        <li>Deteksi riwayat asupan gizi yang lalu</li>
+        <li>Dapat digunakan untuk skrining risiko gizi</li>
+      </ul>
+      <h3>⚖️ Berat Badan</h3>
+      <p>Menggambarkan jumlah protein, lemak, air, dan mineral dalam tubuh.</p>
+      <h4>Prosedur Pengukuran</h4>
+      <ol>
+        <li>Pastikan angka timbangan <strong>Nol (0)</strong></li>
+        <li>Berdiri <strong>tegak lurus, pandangan ke depan, tidak bergerak</strong></li>
+        <li>Catat hasil (satuan <strong>Kg</strong>)</li>
+      </ol>
+      <h3>📏 Tinggi Badan</h3>
+      <p>Menggambarkan ukuran pertumbuhan massa tulang akibat asupan gizi. Alat: stadiometer/mikrotoise (ketelitian 0,1 cm). Bayi 0-2 tahun diukur panjang badan, >2 tahun mikrotoise.</p>
+      <h4>Prosedur Pengukuran</h4>
+      <ol>
+        <li>Lepas alas kaki, topi, ikat rambut</li>
+        <li>Berdiri tegak: kepala, punggung, pantat, tumit menempel dinding</li>
+        <li>Turunkan alat hingga menyentuh puncak kepala</li>
+        <li>Catat hasil (satuan <strong>cm</strong>)</li>
+      </ol>
+      <h3>💪 Lingkar Lengan Atas (LILA)</h3>
+      <p>Gambaran jaringan otot dan lemak bawah kulit. <strong>Ambang batas risiko KEK: 23,5 cm.</strong> Ukur di lengan kiri/tidak aktif.</p>
+      <h3>📐 Lingkar Perut</h3>
+      <p>Menggambarkan timbunan lemak dalam rongga perut. Semakin panjang → semakin banyak lemak.</p>
+      <h4>Prosedur Pengukuran</h4>
+      <ol>
+        <li>Berdiri tegak, kaki rapat, napas normal</li>
+        <li>Raba tulang rusuk terbawah & tulang panggul atas, tandai titik tengah</li>
+        <li>Lilitkan pita ukur menempel kulit</li>
+        <li>Catat hasil (satuan <strong>cm</strong>)</li>
+      </ol>
+      <h3>🧠 Lingkar Kepala</h3>
+      <p>Pengukuran pertumbuhan otak. Untuk bayi 0-3 tahun pada bidang frankfort (horizontal di atas glabela).</p>
+      <h4>Referensi CDC 2000</h4>
+      <ul>
+        <li>Bayi laki-laki baru lahir: 36 cm → 3 bulan: 41 cm</li>
+        <li>Bayi perempuan baru lahir: 35 cm → 3 bulan: 40 cm</li>
+        <li>4-6 bulan: +1 cm/bulan | 6-12 bulan: +0,5 cm/bulan</li>
+      </ul>
+      <h4>Mikrosefali</h4>
+      <p>Lingkar kepala &lt; -2SD. Penyebab: alkohol/obat saat hamil, infeksi TORCH (Toxoplasma, Rubella, CMV, Herpes), atrofi otak.</p>
+      <h3>🦵 Tinggi Lutut</h3>
+      <p>Berkorelasi dengan tinggi badan. Untuk estimasi TB pada yang tidak bisa berdiri tegak (kelainan tulang belakang, lansia). Alat: caliper, posisi lutut 90°.</p>
+      <h3>⚖️ Rasio Lingkar Pinggang dan Panggul (RLPP)</h3>
+      <p>Lingkar pinggang menunjukkan simpanan lemak. Lemak perut = perubahan metabolisme (penurunan insulin, radikal bebas).</p>
+      <h4>Prosedur Pemeriksaan</h4>
+      <ol>
+        <li>Pakaian minimal, berdiri tegap santai</li>
+        <li>Kaki rapat, berat terdistribusi normal</li>
+        <li>Sebaiknya dalam keadaan berpuasa</li>
+      </ol>
+      <h4>Contoh Perhitungan</h4>
+      <p>Pria: LP 90 cm, LPg 87 cm → RLPP = 90/87 = <strong>1,034</strong> → risiko sindrom metabolik (hipertensi, DM, jantung koroner).</p>
+      <h3>📊 Tebal Lemak Bawah Kulit (TLBK / Skinfold)</h3>
+      <p>Ukuran cadangan lemak tubuh. Lokasi: subscapular, midaxillary, pectoral, abdominal, suprailiaka, paha, tricep, bicep, dll.</p>
+      <h4>Prosedur Pemeriksaan</h4>
+      <ol>
+        <li>Ukur di tubuh bagian kanan</li>
+        <li>Subkutis dijepit dan diangkat dengan jari 1-2 tangan kiri</li>
+        <li>Kaliper menjepit 1 cm distal, tegak lurus</li>
+        <li>Baca setelah 2-3 detik, ulang 3× (selisih maks 1 mm), rata-rata</li>
+      </ol>
+      <h3>📚 Referensi</h3>
+      <ul>
+        <li>Buku Ajar Penilaian Status Gizi. 2017 Kemenkes RI</li>
+        <li>Ahmad, S.I. and Imam, S.K. eds., (2015). Obesity: a practical guide. Springer.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- KUIS -->
+<div class="section" id="kuis">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">✅ Kuis</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Uji pemahaman Anda dengan kuis interaktif</p>
+  <div class="quiz-container" id="quizContainer">
+    <div class="quiz-question" id="quizQ1">
+      <h3>1. Apa kepanjangan dari PRR dalam sistem imun?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,false,1)">A. Protein Recognition Receptor</div>
+        <div class="quiz-option" onclick="checkAnswer(this,true,1)">B. Pattern Recognition Receptor</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,1)">C. Pathogen Response Receptor</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,1)">D. Peptide Recognition Receptor</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ2">
+      <h3>2. Sel yang pertama kali sampai di tempat infeksi adalah?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,false,2)">A. Makrofag</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,2)">B. Sel T</div>
+        <div class="quiz-option" onclick="checkAnswer(this,true,2)">C. Neutrofil</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,2)">D. Sel B</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ3">
+      <h3>3. Berapa jumlah jalur aktivasi komplemen?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,false,3)">A. 2 jalur</div>
+        <div class="quiz-option" onclick="checkAnswer(this,true,3)">B. 3 jalur</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,3)">C. 4 jalur</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,3)">D. 5 jalur</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ4">
+      <h3>4. Apa kepanjangan ADME dalam farmakokinetik?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,true,4)">A. Absorption, Distribution, Metabolism, Excretion</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,4)">B. Absorption, Diffusion, Metabolism, Elimination</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,4)">C. Adsorption, Distribution, Movement, Excretion</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,4)">D. Absorption, Distribution, Movement, Elimination</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ5">
+      <h3>5. Fase penyembuhan luka hari 3-21 adalah?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,false,5)">A. Hemostasis</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,5)">B. Inflamasi</div>
+        <div class="quiz-option" onclick="checkAnswer(this,true,5)">C. Proliferasi</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,5)">D. Remodeling</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ6">
+      <h3>6. Ambang batas LILA WUS untuk risiko KEK adalah?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,false,6)">A. 21,5 cm</div>
+        <div class="quiz-option" onclick="checkAnswer(this,true,6)">B. 23,5 cm</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,6)">C. 25,5 cm</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,6)">D. 27,5 cm</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ7">
+      <h3>7. Tanda R/ pada resep berarti?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,false,7)">A. Right (kanan)</div>
+        <div class="quiz-option" onclick="checkAnswer(this,true,7)">B. Recipe (ambillah)</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,7)">C. Recipe (resep)</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,7)">D. Ratio (perbandingan)</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ8">
+      <h3>8. Vaksin polio (Sabin) termasuk jenis?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,true,8)">A. Vaksin hidup yang dilemahkan</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,8)">B. Vaksin mati inaktif</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,8)">C. Vaksin subunit</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,8)">D. Vaksin DNA</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ9">
+      <h3>9. Agonis adalah obat yang?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,false,9)">A. Menghambat reseptor</div>
+        <div class="quiz-option" onclick="checkAnswer(this,true,9)">B. Mengikat reseptor dan menimbulkan respon</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,9)">C. Tidak berikatan dengan reseptor</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,9)">D. Menghancurkan reseptor</div>
+      </div>
+    </div>
+    <div class="quiz-question" id="quizQ10">
+      <h3>10. Keloid dibedakan dari hypertrophic scar karena?</h3>
+      <div class="quiz-options">
+        <div class="quiz-option" onclick="checkAnswer(this,false,10)">A. Terbatas pada area luka</div>
+        <div class="quiz-option" onclick="checkAnswer(this,true,10)">B. Meluas melebihi batas luka</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,10)">C. Tidak mengandung kolagen</div>
+        <div class="quiz-option" onclick="checkAnswer(this,false,10)">D. Sembuh lebih cepat</div>
+      </div>
+    </div>
+    <div class="quiz-result" id="quizResult" style="display:none">
+      <div class="card">
+        <div class="stat-value" id="scoreValue">0/10</div>
+        <div class="stat-label" id="scoreLabel">Skor Anda</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIMULASI SOAL -->
+<div class="section" id="simulasi">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">🧪 Simulasi Soal</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Latihan soal berbasis kasus untuk persiapan ujian</p>
+  <div class="card">
+    <div class="card-title">Soal Kasus 1 — Imunologi</div>
+    <div class="card-subtitle">Bacalah kasus dan pilih jawaban yang tepat</div>
+    <div class="content-text" style="margin-bottom:20px">
+      <p><strong>Kasus:</strong> Pasien laki-laki 25 tahun dengan luka tusuk di kaki. Area luka terlihat merah, panas, bengkak, dan nyeri. Pemeriksaan darah: peningkatan neutrofil.</p>
+      <p><strong>Pertanyaan:</strong> Tanda-tangan kardinal yang muncul merupakan manifestasi dari proses ...</p>
+    </div>
+    <div class="quiz-options">
+      <div class="quiz-option" onclick="checkSimulasi(this,false,1)">A. Hemostasis</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,true,1)">B. Inflamasi akut</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,1)">C. Proliferasi jaringan</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,1)">D. Remodeling matriks</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Soal Kasus 2 — Farmakologi</div>
+    <div class="card-subtitle">Bacalah kasus dan pilih jawaban yang tepat</div>
+    <div class="content-text" style="margin-bottom:20px">
+      <p><strong>Kasus:</strong> Pasien perempuan 35 tahun diberikan amoksisilin 500 mg setiap 8 jam. Pasien mengeluh mual dan muntah setelah minum obat.</p>
+      <p><strong>Pertanyaan:</strong> Gejala mual dan muntah merupakan contoh dari ...</p>
+    </div>
+    <div class="quiz-options">
+      <div class="quiz-option" onclick="checkSimulasi(this,false,2)">A. Idiosinkrasi</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,true,2)">B. Efek samping (side effect)</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,2)">C. Alergi obat</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,2)">D. Toleransi obat</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Soal Kasus 3 — Penilaian Gizi</div>
+    <div class="card-subtitle">Bacalah kasus dan pilih jawaban yang tepat</div>
+    <div class="content-text" style="margin-bottom:20px">
+      <p><strong>Kasus:</strong> Seorang WUS diukur LILA dan didapatkan hasil 22 cm.</p>
+      <p><strong>Pertanyaan:</strong> Berdasarkan hasil pengukuran, pasien berisiko ...</p>
+    </div>
+    <div class="quiz-options">
+      <div class="quiz-option" onclick="checkSimulasi(this,true,3)">A. KEK (Kekurangan Energi Kronis)</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,3)">B. Obesitas</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,3)">C. Diabetes mellitus</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,3)">D. Anemia</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Soal Kasus 4 — Resep</div>
+    <div class="card-subtitle">Bacalah kasus dan pilih jawaban yang tepat</div>
+    <div class="content-text" style="margin-bottom:20px">
+      <p><strong>Kasus:</strong> Dokter menulis: <em>R/ Paracetamol 500 mg No. X, S. 3 dd tab I</em></p>
+      <p><strong>Pertanyaan:</strong> Signatura "3 dd tab I" berarti pasien harus minum obat ...</p>
+    </div>
+    <div class="quiz-options">
+      <div class="quiz-option" onclick="checkSimulasi(this,false,4)">A. 1 kali sehari 3 tablet</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,true,4)">B. 3 kali sehari 1 tablet</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,4)">C. 1 kali sehari 1 tablet</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,4)">D. 3 kali sehari 3 tablet</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Soal Kasus 5 — Imunologi Spesifik</div>
+    <div class="card-subtitle">Bacalah kasus dan pilih jawaban yang tepat</div>
+    <div class="content-text" style="margin-bottom:20px">
+      <p><strong>Kasus:</strong> Pasien terinfeksi virus influenza. Tubuh memproduksi interferon tipe I sebagai respon awal.</p>
+      <p><strong>Pertanyaan:</strong> Interferon tipe I terdiri dari ...</p>
+    </div>
+    <div class="quiz-options">
+      <div class="quiz-option" onclick="checkSimulasi(this,false,5)">A. IFN-γ dan IFN-β</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,true,5)">B. IFN-α dan IFN-β</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,5)">C. IFN-α dan IFN-γ</div>
+      <div class="quiz-option" onclick="checkSimulasi(this,false,5)">D. IFN-δ dan IFN-ε</div>
+    </div>
+  </div>
+</div>
+
+<!-- FLASHCARD -->
+<div class="section" id="flashcard">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">💬 Flashcard</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Klik kartu untuk membalik dan melihat jawaban</p>
+  <div class="flashcard-container">
+    <div class="fc-counter" id="fcCounter">1 / 15</div>
+    <div class="flashcard" id="flashcardEl" onclick="flipCard()">
+      <div class="fc-front" id="fcFront">
+        <div class="fc-content" id="fcFrontContent"><strong>Apa itu PAMPs?</strong><br><br><em>(Klik untuk melihat jawaban)</em></div>
+      </div>
+      <div class="fc-back" id="fcBack">
+        <div class="fc-content" id="fcBackContent"><strong>Pathogen-Associated Molecular Patterns</strong><br>Molekul pathogen (LPS, Flagelin, dsRNA) yang dikenali PRR.</div>
+      </div>
+    </div>
+    <div class="fc-controls">
+      <button class="fc-btn" onclick="prevCard()">← Sebelumnya</button>
+      <button class="fc-btn" onclick="nextCard()">Selanjutnya →</button>
+    </div>
+  </div>
+</div>
+
+<!-- POMODORO -->
+<div class="section" id="pomodoro">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">⏱ Pomodoro Timer</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Fokus belajar dengan teknik Pomodoro</p>
+  <div class="card" style="max-width:500px;margin:0 auto;text-align:center">
+    <div class="timer-display" id="timerDisplay">25:00</div>
+    <div class="timer-controls">
+      <button class="timer-btn start" onclick="startTimer()">▶ Mulai</button>
+      <button class="timer-btn pause" onclick="pauseTimer()">⏸ Jeda</button>
+      <button class="timer-btn reset" onclick="resetTimer()">↻ Reset</button>
+    </div>
+    <p style="color:#64748b;font-size:13px;margin-top:15px">Sesi fokus: 25 menit | Istirahat: 5 menit</p>
+  </div>
+</div>
+
+<!-- CATATAN -->
+<div class="section" id="catatan">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">📝 Catatan</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Buat dan simpan catatan belajar Anda</p>
+  <div class="card">
+    <textarea id="notesArea" style="width:100%;min-height:300px;padding:15px;border:1px solid #e2e8f0;border-radius:8px;font-family:inherit;font-size:14px;resize:vertical;outline:none" placeholder="Tulis catatan Anda di sini..."></textarea>
+    <div style="margin-top:15px;text-align:right">
+      <button class="fc-btn" onclick="saveNotes()">💾 Simpan Catatan</button>
+      <span id="saveStatus" style="margin-left:10px;color:#10b981;font-size:13px"></span>
+    </div>
+  </div>
+</div>
+
+<!-- PENCARIAN -->
+<div class="section" id="pencarian">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">🔍 Pencarian Cepat</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Cari istilah atau konsep dalam materi</p>
+  <input type="text" class="search-box" id="searchBox" placeholder="Ketik kata kunci untuk mencari..." oninput="doSearch(this.value)">
+  <div class="card">
+    <div class="card-title">📚 Hasil Pencarian</div>
+    <div id="searchResultsList" style="margin-top:15px;color:#64748b">Ketik minimal 3 karakter untuk mencari</div>
+  </div>
+</div>
+
+<!-- GLOSARIUM -->
+<div class="section" id="glosarium">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">📖 Glosarium Medis</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Kumpulan istilah medis dan definisinya</p>
+  <div class="card">
+    <table class="ref-table">
+      <tr><th>Istilah</th><th>Definisi</th></tr>
+      <tr><td>Imunitas</td><td>Proteksi dari penyakit infeksi</td></tr>
+      <tr><td>Antigen</td><td>Zat asing yang merangsang sistem imun menghasilkan antibodi</td></tr>
+      <tr><td>Antibodi</td><td>Protein yang dihasilkan sel B untuk mengenali dan netralisasi antigen</td></tr>
+      <tr><td>Fagositosis</td><td>Proses sel menelan dan menghancurkan partikel asing</td></tr>
+      <tr><td>Opsonisasi</td><td>Pelapisan antigen oleh antibodi/komplemen agar mudah difagosit</td></tr>
+      <tr><td>Inflamasi</td><td>Respon tubuh terhadap kerusakan jaringan: rubor, kalor, tumor, dolor</td></tr>
+      <tr><td>Interferon</td><td>Glikoprotein antivirus yang melindungi sel sekitar dari infeksi</td></tr>
+      <tr><td>Komplemen</td><td>Sistem protein plasma yang membantu antibodi menghancurkan patogen</td></tr>
+      <tr><td>Reseptor obat</td><td>Makromolekul target yang mengikat obat dan menimbulkan efek</td></tr>
+      <tr><td>Agonis</td><td>Obat yang mengikat reseptor dan menimbulkan respon fisiologis</td></tr>
+      <tr><td>Antagonis</td><td>Obat yang mengikat reseptor tanpa menimbulkan respon, menghambat agonis</td></tr>
+      <tr><td>Farmakokinetik</td><td>Studi ADME: absorpsi, distribusi, metabolisme, ekskresi obat</td></tr>
+      <tr><td>Farmakodinamik</td><td>Studi efek obat pada tubuh dan mekanisme kerjanya</td></tr>
+      <tr><td>Hemostasis</td><td>Proses penghentian pendarahan melalui vasokontriksi dan pembekuan</td></tr>
+      <tr><td>Angiogenesis</td><td>Pembentukan pembuluh darah baru dari pembuluh yang sudah ada</td></tr>
+      <tr><td>Fibroplasia</td><td>Pembentukan jaringan fibrosa oleh fibroblas saat penyembuhan luka</td></tr>
+      <tr><td>Re-epithelialization</td><td>Pertumbuhan kembali epitel untuk menutupi permukaan luka</td></tr>
+      <tr><td>Keloid</td><td>Pertumbuhan jaringan parut berlebihan yang meluas melebihi batas luka</td></tr>
+      <tr><td>Antropometri</td><td>Pengukuran tubuh manusia untuk menilai status gizi</td></tr>
+      <tr><td>LILA</td><td>Lingkar Lengan Atas — indikator status protein dan lemak tubuh</td></tr>
+      <tr><td>KEK</td><td>Kekurangan Energi Kronis — ambang batas LILA: 23,5 cm</td></tr>
+      <tr><td>TORCH</td><td>Toxoplasma, Rubella, Cytomegalovirus, Herpes — infeksi kongenital</td></tr>
+      <tr><td>LD50</td><td>Lethal Dose 50 — dosis mematikan 50% hewan uji</td></tr>
+      <tr><td>Bioavailabilitas</td><td>Fraksi obat yang mencapai sirkulasi sistemik</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- TABEL REFERENSI -->
+<div class="section" id="tabel">
+  <h2 style="margin-bottom:5px;font-size:24px;color:#1e293b">📋 Tabel Referensi</h2>
+  <p style="color:#64748b;margin-bottom:20px;font-size:14px">Tabel referensi penting untuk pembelajaran</p>
+  <div class="card">
+    <div class="card-title">🩸 Sel-Sel Sistem Imun dan Fungsinya</div>
+    <table class="ref-table">
+      <tr><th>Sel</th><th>Tipe</th><th>Fungsi Utama</th></tr>
+      <tr><td>Neutrofil</td><td>Fagosit (PMN)</td><td>Sel pertama di tempat infeksi, fagositosis</td></tr>
+      <tr><td>Makrofag</td><td>Fagosit (Mononuklear)</td><td>Fagositosis, APC, sitokin</td></tr>
+      <tr><td>Sel NK</td><td>LGL (Non spesifik)</td><td>Membunuh sel tumor dan sel terinfeksi virus</td></tr>
+      <tr><td>Eosinofil</td><td>Granulosit</td><td>Melawan infeksi parasit, alergi</td></tr>
+      <tr><td>Basofil</td><td>Granulosit</td><td>Mediator inflamasi, melepaskan histamin</td></tr>
+      <tr><td>Sel T (CD4)</td><td>Sel spesifik</td><td>T helper, mengaktivasi sel imun lain</td></tr>
+      <tr><td>Sel T (CD8)</td><td>Sel spesifik</td><td>Cytotoxic, membunuh sel terinfeksi</td></tr>
+      <tr><td>Sel B</td><td>Sel spesifik</td><td>Memproduksi antibodi (imunoglobulin)</td></tr>
+      <tr><td>Sel Dendritik</td><td>APC</td><td>Menangkap antigen, presentasi ke sel T</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">💊 Golongan Obat (Permenkes RI)</div>
+    <table class="ref-table">
+      <tr><th>Golongan</th><th>Ciri</th><th>Contoh</th></tr>
+      <tr><td>Obat Bebas</td><td>Tanpa resep</td><td>Paracetamol, Vit C, OBH</td></tr>
+      <tr><td>Obat Bebas Terbatas (W)</td><td>Dengan peringatan</td><td>Antihistamin, klorokuin</td></tr>
+      <tr><td>Obat Keras (G)</td><td>Berbahaya tanpa resep</td><td>Adrenalin, antibiotika</td></tr>
+      <tr><td>OWA</td><td>Diserahkan apoteker tanpa resep</td><td>Salbutamol, ranitidin</td></tr>
+      <tr><td>Narkotika</td><td>Menurunkan kesadaran</td><td>Morfin, kodein, opium</td></tr>
+      <tr><td>Psikotropika</td><td>Efek psikoaktif</td><td>Diazepam, fenobarbital</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">📐 Standar Antropometri</div>
+    <table class="ref-table">
+      <tr><th>Pengukuran</th><th>Alat</th><th>Keterangan</th></tr>
+      <tr><td>Berat Badan</td><td>Timbangan digital</td><td>Kg, tegak, tanpa alas kaki</td></tr>
+      <tr><td>Tinggi Badan</td><td>Stadiometer</td><td>Cm, presisi 0,1 cm</td></tr>
+      <tr><td>LILA</td><td>Pita LILA</td><td>Ambang batas KEK: 23,5 cm</td></tr>
+      <tr><td>Lingkar Perut</td><td>Pita ukur</td><td>Antara rusuk terbawah dan panggul atas</td></tr>
+      <tr><td>Lingkar Kepala</td><td>Pita ukur</td><td>Bayi 0-3 tahun, bidang frankfort</td></tr>
+      <tr><td>Tinggi Lutut</td><td>Caliper</td><td>Untuk estimasi TB lansia</td></tr>
+      <tr><td>TLBK</td><td>Kaliper</td><td>3× pengukuran, selisih maks 1 mm</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-title">🩹 Fase Penyembuhan Luka</div>
+    <table class="ref-table">
+      <tr><th>Fase</th><th>Waktu</th><th>Karakteristik</th></tr>
+      <tr><td>Hemostasis</td><td>Menit – jam</td><td>Vasokontriksi, trombosit, pembekuan</td></tr>
+      <tr><td>Inflamasi</td><td>Hari 1-3</td><td>Neutrofil, makrofag, fagositosis</td></tr>
+      <tr><td>Proliferasi</td><td>Hari 3-21</td><td>Granulasi, angiogenesis, fibroplasia</td></tr>
+      <tr><td>Remodeling</td><td>Minggu – bulan</td><td>Kolagen III→I, kekuatan tarik ↑</td></tr>
+    </table>
+  </div>
+</div>
+
+<script>
+// ============================================
+// FIXED JAVASCRIPT - All bugs corrected
+// ============================================
+
+// ===== NAVIGATION =====
+function showSection(sectionId, element) {
+  // Hide all sections
+  var sections = document.querySelectorAll('.section');
+  for (var i = 0; i < sections.length; i++) {
+    sections[i].classList.remove('active');
+  }
+  // Show target section
+  var target = document.getElementById(sectionId);
+  if (target) {
+    target.classList.add('active');
+  }
+  // Update sidebar active state
+  var items = document.querySelectorAll('.sidebar-item');
+  for (var j = 0; j < items.length; j++) {
+    items[j].classList.remove('active');
+  }
+  if (element) {
+    element.classList.add('active');
+  }
+}
+
+function toggleSidebar() {
+  var sidebar = document.getElementById('sidebar');
+  var main = document.getElementById('mainContent');
+  var btn = document.getElementById('sidebarToggle');
+  sidebar.classList.toggle('collapsed');
+  main.classList.toggle('expanded');
+  btn.classList.toggle('collapsed');
+}
+
+// ===== MATERI DETAIL =====
+function showMateriDetail(id) {
+  var grid = document.getElementById('materiGrid');
+  if (grid) grid.style.display = 'none';
+  var details = document.querySelectorAll('.materi-detail');
+  for (var i = 0; i < details.length; i++) {
+    details[i].classList.remove('active');
+  }
+  var target = document.getElementById('materi-' + id);
+  if (target) {
+    target.classList.add('active');
+    target.scrollTop = 0;
+  }
+  // Update stat materi dibaca
+  var statMateri = document.getElementById('statMateri');
+  if (statMateri) {
+    var current = parseInt(statMateri.textContent) || 0;
+    if (current < 7) statMateri.textContent = current + 1;
+  }
+}
+
+function backToMateri() {
+  var details = document.querySelectorAll('.materi-detail');
+  for (var i = 0; i < details.length; i++) {
+    details[i].classList.remove('active');
+  }
+  var grid = document.getElementById('materiGrid');
+  if (grid) grid.style.display = 'grid';
+}
+
+// ===== KUIS =====
+var quizScore = 0;
+var quizAnswered = 0;
+var totalQuizQuestions = 10;
+
+function checkAnswer(el, isCorrect, qNum) {
+  var parent = el.parentElement;
+  // Prevent double answering
+  if (parent.getAttribute('data-answered') === 'true') return;
+  parent.setAttribute('data-answered', 'true');
+
+  // Disable all options in this question
+  var allOptions = parent.querySelectorAll('.quiz-option');
+  for (var i = 0; i < allOptions.length; i++) {
+    allOptions[i].classList.add('disabled');
+  }
+
+  if (isCorrect) {
+    el.classList.add('correct');
+    el.innerHTML = el.innerHTML + ' ✅ <strong>BENAR!</strong>';
+    quizScore++;
+  } else {
+    el.classList.add('wrong');
+    el.innerHTML = el.innerHTML + ' ❌ <strong>SALAH</strong>';
+    // Highlight the correct answer
+    for (var j = 0; j < allOptions.length; j++) {
+      var opt = allOptions[j];
+      var onclickStr = opt.getAttribute('onclick') || '';
+      if (onclickStr.indexOf('true') !== -1 && onclickStr.indexOf(String(qNum)) !== -1) {
+        opt.classList.add('correct');
+      }
+    }
+  }
+  quizAnswered++;
+
+  // Show result when all answered
+  if (quizAnswered >= totalQuizQuestions) {
+    var resultDiv = document.getElementById('quizResult');
+    var scoreValue = document.getElementById('scoreValue');
+    var scoreLabel = document.getElementById('scoreLabel');
+    if (resultDiv) resultDiv.style.display = 'block';
+    if (scoreValue) scoreValue.textContent = quizScore + '/' + totalQuizQuestions;
+    if (scoreLabel) {
+      if (quizScore >= 9) scoreLabel.textContent = 'Sempurna! 🌟🎉';
+      else if (quizScore >= 7) scoreLabel.textContent = 'Sangat Baik! 👏';
+      else if (quizScore >= 5) scoreLabel.textContent = 'Baik, terus belajar! 📚';
+      else if (quizScore >= 3) scoreLabel.textContent = 'Cukup, tingkatkan lagi! 💪';
+      else scoreLabel.textContent = 'Perlu belajar lebih giat! 📖';
+    }
+    // Update dashboard stat
+    var statKuis = document.getElementById('statKuis');
+    if (statKuis) statKuis.textContent = quizScore;
+    // Scroll to result
+    resultDiv.scrollIntoView({behavior: 'smooth'});
+  }
+}
+
+// ===== SIMULASI SOAL =====
+var simulasiAnswered = 0;
+var simulasiCorrect = 0;
+
+function checkSimulasi(el, isCorrect, qNum) {
+  var parent = el.parentElement;
+  if (parent.getAttribute('data-answered') === 'true') return;
+  parent.setAttribute('data-answered', 'true');
+
+  var allOptions = parent.querySelectorAll('.quiz-option');
+  for (var i = 0; i < allOptions.length; i++) {
+    allOptions[i].classList.add('disabled');
+  }
+
+  if (isCorrect) {
+    el.classList.add('correct');
+    el.innerHTML = el.innerHTML + ' ✅ <strong>BENAR!</strong>';
+    simulasiCorrect++;
+  } else {
+    el.classList.add('wrong');
+    el.innerHTML = el.innerHTML + ' ❌ <strong>SALAH</strong>';
+    for (var j = 0; j < allOptions.length; j++) {
+      var opt = allOptions[j];
+      var onclickStr = opt.getAttribute('onclick') || '';
+      if (onclickStr.indexOf('true') !== -1 && onclickStr.indexOf(String(qNum)) !== -1) {
+        opt.classList.add('correct');
+      }
+    }
+  }
+  simulasiAnswered++;
+
+  // Update dashboard
+  var statSimulasi = document.getElementById('statSimulasi');
+  if (statSimulasi) statSimulasi.textContent = simulasiCorrect;
+}
+
+// ===== FLASHCARD =====
+var flashcards = [
+  {front: 'Apa itu PAMPs?', back: '<strong>Pathogen-Associated Molecular Patterns</strong><br>Molekul pathogen (LPS, Flagelin, dsRNA virus) yang dikenali oleh PRR.'},
+  {front: 'Sebutkan 5 tanda kardinal inflamasi!', back: '<strong>5 Tanda Kardinal:</strong><br>1. Kalor (panas)<br>2. Rubor (merah)<br>3. Tumor (bengkak)<br>4. Dolor (nyeri)<br>5. Fungsio laesa (gangguan fungsi)'},
+  {front: 'Apa fungsi utama makrofag?', back: '<strong>Fungsi Makrofag:</strong><br>• Fagositosis<br>• Antigen Presenting Cell (APC)<br>• Produksi sitokin (VEGF, FGF, TGF-β)'},
+  {front: 'Apa perbedaan Gram(+) dan Gram(-)?', back: '<strong>Gram(+):</strong> Dinding tebal peptidoglikan + asam teikoat<br><strong>Gram(-):</strong> Membran LPS luar, sensitif jalur lisis komplemen'},
+  {front: 'Apa kepanjangan ADME?', back: '<strong>ADME =</strong><br>A = Absorption (absorpsi)<br>D = Distribution (distribusi)<br>M = Metabolism (metabolisme)<br>E = Excretion (ekskresi)'},
+  {front: 'Apa beda agonis dan antagonis?', back: '<strong>Agonis:</strong> Mengikat reseptor → menimbulkan respon<br><strong>Antagonis:</strong> Mengikat reseptor → menghambat respon (tidak menimbulkan efek)'},
+  {front: 'Sebutkan 4 fase penyembuhan luka!', back: '<strong>4 Fase:</strong><br>1. Hemostasis<br>2. Inflamasi<br>3. Proliferasi<br>4. Remodeling'},
+  {front: 'Ambang batas LILA untuk risiko KEK?', back: '<strong>23,5 cm</strong><br>Jika LILA WUS &lt; 23,5 cm = risiko KEK<br>(Kekurangan Energi Kronis)'},
+  {front: 'Apa arti tanda R/ pada resep?', back: '<strong>R/ = Recipe = ambillah</strong><br>Invocatio — kata pembuka komunikasi dokter dan apoteker.'},
+  {front: 'Perbedaan keloid dan hypertrophic scar?', back: '<strong>Keloid:</strong> Meluas melebihi batas luka asli<br><strong>Hypertrophic:</strong> Terbatas pada area luka asli'},
+  {front: 'Apa fungsi interferon (IFN)?', back: '<strong>Interferon:</strong><br>• Protein glikoprotein antivirus<br>• Melindungi sel sekitar dari infeksi virus<br>• Mengaktifkan sel NK'},
+  {front: 'Apa peran sel dendritik?', back: '<strong>Sel Dendritik (APC):</strong><br>Menjembatani imun nonspesifik dan spesifik dengan mempresentasikan antigen ke sel T.'},
+  {front: 'Sebutkan 3 jalur aktivasi komplemen!', back: '<strong>3 Jalur:</strong><br>1. Jalur Klasik (Ag-Ab)<br>2. Jalur Alternatif (LPS/endotoksin)<br>3. Jalur Lectin (mannose)'},
+  {front: 'Apa itu opsonisasi?', back: '<strong>Opsonisasi:</strong><br>Proses melapisi antigen oleh antibodi/komplemen (C3b, C4b) agar lebih mudah difagosit.'},
+  {front: 'Apa yang dimaksud bioavailabilitas?', back: '<strong>Bioavailabilitas:</strong><br>Fraksi obat utuh yang mencapai sirkulasi sistemik setelah pemberian.'}
+];
+
+var currentCard = 0;
+var maxFlashcardSeen = 0;
+
+function updateCard() {
+  var fcFrontContent = document.getElementById('fcFrontContent');
+  var fcBackContent = document.getElementById('fcBackContent');
+  var fcCounter = document.getElementById('fcCounter');
+  var flashcardEl = document.getElementById('flashcardEl');
+
+  if (fcFrontContent) {
+    fcFrontContent.innerHTML = '<strong>' + flashcards[currentCard].front + '</strong><br><br><em style="color:#64748b">(Klik untuk melihat jawaban)</em>';
+  }
+  if (fcBackContent) {
+    fcBackContent.innerHTML = flashcards[currentCard].back;
+  }
+  if (fcCounter) {
+    fcCounter.textContent = (currentCard + 1) + ' / ' + flashcards.length;
+  }
+  if (flashcardEl) {
+    flashcardEl.classList.remove('flipped');
+  }
+
+  // Update stat
+  if (currentCard + 1 > maxFlashcardSeen) {
+    maxFlashcardSeen = currentCard + 1;
+    var statFlashcard = document.getElementById('statFlashcard');
+    if (statFlashcard) statFlashcard.textContent = maxFlashcardSeen;
+  }
+}
+
+function flipCard() {
+  var el = document.getElementById('flashcardEl');
+  if (el) el.classList.toggle('flipped');
+}
+
+function nextCard() {
+  currentCard = (currentCard + 1) % flashcards.length;
+  updateCard();
+}
+
+function prevCard() {
+  currentCard = (currentCard - 1 + flashcards.length) % flashcards.length;
+  updateCard();
+}
+
+// ===== POMODORO TIMER =====
+var timerInterval = null;
+var timeLeft = 1500; // 25 minutes in seconds
+var isTimerRunning = false;
+
+function updateTimerDisplay() {
+  var display = document.getElementById('timerDisplay');
+  if (!display) return;
+  var minutes = Math.floor(timeLeft / 60);
+  var seconds = timeLeft % 60;
+  var mStr = minutes < 10 ? '0' + minutes : String(minutes);
+  var sStr = seconds < 10 ? '0' + seconds : String(seconds);
+  display.textContent = mStr + ':' + sStr;
+}
+
+function startTimer() {
+  if (isTimerRunning) return;
+  isTimerRunning = true;
+  timerInterval = setInterval(function() {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerInterval = null;
+      alert('Waktu fokus selesai! Istirahat sejenak.');
+      var statPomodoro = document.getElementById('statPomodoro');
+      if (statPomodoro) {
+        var count = parseInt(statPomodoro.textContent) || 0;
+        statPomodoro.textContent = count + 1;
+      }
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  isTimerRunning = false;
+}
+
+function resetTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  isTimerRunning = false;
+  timeLeft = 1500;
+  updateTimerDisplay();
+}
+
+// ===== CATATAN =====
+function saveNotes() {
+  var notesArea = document.getElementById('notesArea');
+  var saveStatus = document.getElementById('saveStatus');
+  if (!notesArea) return;
+  try {
+    localStorage.setItem('medstudy_notes', notesArea.value);
+    if (saveStatus) {
+      saveStatus.textContent = 'Tersimpan!';
+      setTimeout(function() {
+        saveStatus.textContent = '';
+      }, 2000);
+    }
+  } catch (e) {
+    if (saveStatus) saveStatus.textContent = 'Gagal menyimpan';
+  }
+}
+
+function loadNotes() {
+  var notesArea = document.getElementById('notesArea');
+  if (!notesArea) return;
+  try {
+    var saved = localStorage.getItem('medstudy_notes');
+    if (saved) notesArea.value = saved;
+  } catch (e) {
+    // localStorage not available
+  }
+}
+
+// ===== PENCARIAN =====
+var searchData = [
+  {term: 'PAMPs', def: 'Pathogen-Associated Molecular Patterns — molekul pathogen yang dikenali PRR', materi: 'Respon Imun Innate'},
+  {term: 'PRR', def: 'Pattern Recognition Receptor — reseptor sel imun yang mengenali PAMPs/DAMPs', materi: 'Respon Imun Innate'},
+  {term: 'DAMPs', def: 'Damage-Associated Molecular Patterns — molekul dari sel rusak', materi: 'Respon Imun Innate'},
+  {term: 'TLR', def: 'Toll-Like Receptors — jenis PRR yang mengenali PAMPs', materi: 'Respon Imun Innate'},
+  {term: 'Fagositosis', def: 'Proses sel menelan dan menghancurkan patogen', materi: 'Respon Imun Innate'},
+  {term: 'Neutrofil', def: 'Sel PMN yang pertama sampai di tempat infeksi', materi: 'Respon Imun Innate'},
+  {term: 'Makrofag', def: 'Sel fagosit mononuklier, APC, produksi sitokin', materi: 'Respon Imun Innate'},
+  {term: 'Sel NK', def: 'Natural Killer — membunuh sel tumor dan virus', materi: 'Respon Imun Innate'},
+  {term: 'Sel dendritik', def: 'Antigen Presenting Cell — jembatan imun innate dan adaptif', materi: 'Respon Imun Innate'},
+  {term: 'Komplemen', def: 'Sistem protein plasma yang membantu hancurkan patogen', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Opsonisasi', def: 'Pelapisan antigen agar mudah difagosit', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Interferon', def: 'Protein antivirus yang melindungi sel sekitar', materi: 'Konsep Dasar Imunologi'},
+  {term: 'CRP', def: 'C-Reactive Protein — protein fase akut', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Anafilatoksin', def: 'C3a, C5a — menyebabkan degranulasi mastosit', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Kemotaksis', def: 'Gerakan sel menuju bahan kimia tertentu', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Hemostasis', def: 'Penghentian pendarahan — fase pertama penyembuhan luka', materi: 'Wound Healing'},
+  {term: 'Angiogenesis', def: 'Pembentukan pembuluh darah baru', materi: 'Wound Healing'},
+  {term: 'Keloid', def: 'Pertumbuhan parut melebihi batas luka', materi: 'Wound Healing'},
+  {term: 'Hypertrophic scar', def: 'Parut tebal terbatas pada area luka', materi: 'Wound Healing'},
+  {term: 'Fibroplasia', def: 'Pembentukan jaringan fibrosa oleh fibroblas', materi: 'Wound Healing'},
+  {term: 'Re-epithelialization', def: 'Pertumbuhan epitel menutupi luka', materi: 'Wound Healing'},
+  {term: 'ADME', def: 'Absorption, Distribution, Metabolism, Excretion', materi: 'Pengantar Farmakologi'},
+  {term: 'Farmakokinetik', def: 'Studi nasib obat dalam tubuh — ADME', materi: 'Pengantar Farmakologi'},
+  {term: 'Farmakodinamik', def: 'Studi efek obat pada tubuh', materi: 'Pengantar Farmakologi'},
+  {term: 'Agonis', def: 'Obat yang mengikat reseptor dan menimbulkan respon', materi: 'Pengantar Farmakologi'},
+  {term: 'Antagonis', def: 'Obat yang menghambat kerja agonis', materi: 'Pengantar Farmakologi'},
+  {term: 'Bioavailabilitas', def: 'Fraksi obat yang mencapai sirkulasi sistemik', materi: 'Pengantar Farmakologi'},
+  {term: 'LD50', def: 'Lethal Dose 50 — dosis mematikan 50% hewan uji', materi: 'Pengantar Farmakologi'},
+  {term: 'Efikasi', def: 'Respon maksimal yang dihasilkan obat', materi: 'Pengantar Farmakologi'},
+  {term: 'Potensi', def: 'Semakin rendah dosis yang dibutuhkan = makin poten', materi: 'Pengantar Farmakologi'},
+  {term: 'Toleransi', def: 'Resistensi terhadap dosis biasa (contoh: morfin)', materi: 'Pengantar Farmakologi'},
+  {term: 'Idiosinkrasi', def: 'Efek abnormal dari obat pada individu tertentu', materi: 'Pengantar Farmakologi'},
+  {term: 'LILA', def: 'Lingkar Lengan Atas — indikator status protein dan lemak', materi: 'Penilaian Status Gizi'},
+  {term: 'KEK', def: 'Kekurangan Energi Kronis — ambang batas LILA: 23,5 cm', materi: 'Penilaian Status Gizi'},
+  {term: 'RLPP', def: 'Rasio Lingkar Pinggang Panggul — indikator sindrom metabolik', materi: 'Penilaian Status Gizi'},
+  {term: 'TLBK', def: 'Tebal Lemak Bawah Kulit (skinfold)', materi: 'Penilaian Status Gizi'},
+  {term: 'TORCH', def: 'Toxoplasma, Rubella, CMV, Herpes — infeksi kongenital', materi: 'Penilaian Status Gizi'},
+  {term: 'Mikrosefali', def: 'Lingkar kepala &lt; -2SD pada bayi', materi: 'Penilaian Status Gizi'},
+  {term: 'R/', def: 'Recipe = ambillah — tanda pembuka resep', materi: 'Teknik Penulisan Resep'},
+  {term: 'Signatura', def: 'Petunjuk cara pakai obat pada resep', materi: 'Teknik Penulisan Resep'},
+  {term: 'Formula Magistralis', def: 'Resep racikan yang ditulis dokter', materi: 'Teknik Penulisan Resep'},
+  {term: 'Formula Officinalis', def: 'Resep yang tercantum dalam farmakope', materi: 'Teknik Penulisan Resep'},
+  {term: 'Inscriptio', def: 'Identitas dokter dan tanggal pada resep', materi: 'Teknik Penulisan Resep'},
+  {term: 'Subscriptio', def: 'Tanda tangan dokter pada resep', materi: 'Teknik Penulisan Resep'},
+  {term: 'Resep Cito', def: 'Resep yang pembuatannya harus didahulukan', materi: 'Teknik Penulisan Resep'},
+  {term: 'Endotoksin', def: 'LPS — komponen dinding sel bakteri Gram negatif', materi: 'Respon Imun BVPar'},
+  {term: 'Eksotoksin', def: 'Toksin yang disekresi aktif oleh bakteri', materi: 'Respon Imun BVPar'},
+  {term: 'Vaksin hidup', def: 'Galur virus yang dilemahkan — Sabin, MMR', materi: 'Respon Imun BVPar'},
+  {term: 'Vaksin mati', def: 'Partikel virus inaktif — Salk, rabies', materi: 'Respon Imun BVPar'},
+  {term: 'Antigenic drift', def: 'Mutasi kecil virus — memerlukan vaksin baru', materi: 'Respon Imun BVPar'},
+  {term: 'Antigenic shift', def: 'Perubahan besar antigen virus — pandemi', materi: 'Respon Imun BVPar'},
+  {term: 'Sel T helper', def: 'Sel CD4 yang mengaktivasi sel imun lain', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Sel T cytotoxic', def: 'Sel CD8 yang membunuh sel terinfeksi', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Sel B', def: 'Sel yang memproduksi antibodi', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Imunoglobulin', def: 'Antibodi yang diproduksi sel B / sel plasma', materi: 'Konsep Dasar Imunologi'},
+  {term: 'Inflamasi', def: 'Respon tubuh: rubor, kalor, tumor, dolor', materi: 'Respon Imun Innate'},
+  {term: 'Sitokin', def: 'Molekul signaling yang mengatur respon imun', materi: 'Respon Imun Innate'}
+];
+
+function doSearch(query) {
+  var resultsDiv = document.getElementById('searchResultsList');
+  if (!resultsDiv) return;
+
+  if (!query || query.length < 3) {
+    resultsDiv.innerHTML = '<p style="color:#64748b">Ketik minimal 3 karakter untuk mencari</p>';
+    return;
+  }
+
+  var q = query.toLowerCase();
+  var matches = [];
+  for (var i = 0; i < searchData.length; i++) {
+    var item = searchData[i];
+    if (item.term.toLowerCase().indexOf(q) !== -1 || item.def.toLowerCase().indexOf(q) !== -1) {
+      matches.push(item);
+    }
+  }
+
+  if (matches.length === 0) {
+    resultsDiv.innerHTML = '<p style="color:#ef4444">Tidak ditemukan hasil untuk "' + query.replace(/</g, '&lt;') + '"</p>';
+  } else {
+    var html = '<div style="display:flex;flex-direction:column;gap:10px">';
+    for (var j = 0; j < matches.length; j++) {
+      var m = matches[j];
+      html += '<div style="padding:12px;background:#f8fafc;border-radius:8px;border-left:3px solid #2563eb">';
+      html += '<strong style="color:#1e293b">' + m.term.replace(/</g, '&lt;') + '</strong> — ' + m.def.replace(/</g, '&lt;') + '<br>';
+      html += '<span style="font-size:12px;color:#64748b">📚 ' + m.materi.replace(/</g, '&lt;') + '</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+    resultsDiv.innerHTML = html;
+  }
+}
+
+// ===== INITIALIZATION =====
+document.addEventListener('DOMContentLoaded', function() {
+  loadNotes();
+  updateTimerDisplay();
+});
+</script>
+</body>
+</html>
